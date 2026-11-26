@@ -73,24 +73,24 @@ validate required values, and produce precise errors with file, line, and reason
 Resolve config paths in the documented order. Empty source sets are errors.
 
 **Acceptance criteria:**
-- [ ] `[general]` supports `line_cap_bytes` with default 8192 and `dropped_log`
+- [x] `[general]` supports `line_cap_bytes` with default 8192 and `dropped_log`
       with default `/var/log/log-notify.log`.
-- [ ] `[[source]]` supports `path`, `pattern`, `summary`, `body`, `urgency`,
+- [x] `[[source]]` supports `path`, `pattern`, `summary`, `body`, `urgency`,
       `cooldown_secs`, `queue_capacity`, and `enabled` with the documented
       defaults.
-- [ ] `queue_capacity` is validated to `1..=100`; default is 10.
-- [ ] Unknown fields, missing required fields, bad urgency, bad queue capacity,
+- [x] `queue_capacity` is validated to `1..=100`; default is 10.
+- [x] Unknown fields, missing required fields, bad urgency, bad queue capacity,
       and zero sources are rejected with a clear message.
-- [ ] Semantic errors report the config file, line/column where available, and
+- [x] Semantic errors report the config file, line/column where available, and
       reason; use `toml::Spanned` or equivalent span data.
-- [ ] Missing config file reports every attempted path.
-- [ ] Path resolution order is `--config`, `/etc/log-notify/log-notify.toml`,
+- [x] Missing config file reports every attempted path.
+- [x] Path resolution order is `--config`, `/etc/log-notify/log-notify.toml`,
       `~/.config/log-notify/log-notify.toml`.
 
 **Verification:**
-- [ ] Unit tests for valid config, unknown field, missing required field, bad
+- [x] Unit tests for valid config, unknown field, missing required field, bad
       urgency, bad queue capacity, empty sources, and missing file.
-- [ ] `cargo test config`
+- [x] `cargo test config`
 
 **Dependencies:** Task 1.
 
@@ -125,8 +125,8 @@ placeholder errors must point at the source.
 **Estimated scope:** Medium (3 files).
 
 **Checkpoint: Config**
-- [ ] All config and pattern tests pass.
-- [ ] Invalid input never starts the daemon.
+- [x] All config tests pass; pattern tests arrive in T4.
+- [x] Invalid config never starts the daemon.
 - [ ] Review with the human before tail work.
 
 ## Phase 3: Tail engine

@@ -66,12 +66,12 @@ No async runtime. No network dependency.
 
 ### Phase 2: Config and matching
 
-- [ ] T3: Config model, TOML parsing, validation
+- [x] T3: Config model, TOML parsing, validation
 - [ ] T4: Pattern and template engine
 
 **Checkpoint: Config**
-- [ ] Invalid TOML, missing fields, bad regex, bad queue capacity, and empty sources fail with precise errors
-- [ ] Named captures and `{line}` substitution are tested
+- [x] Invalid TOML, missing fields, bad queue capacity, and empty sources fail with precise errors
+- [ ] Named captures, `{line}` substitution, and bad regex are tested
 
 ### Phase 3: Tail engine
 

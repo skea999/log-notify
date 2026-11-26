@@ -11,6 +11,9 @@ keywords = ["linux", "daemon", "notifications", "logs", "security"]
 categories = ["command-line-utilities", "system-tools"]
 
 [dependencies]
+serde = { version = "1", features = ["derive"] }
+thiserror = "2"
+toml = "1"
 
 [lints.rust]
 unsafe_code = "forbid"

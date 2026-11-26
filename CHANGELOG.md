@@ -11,6 +11,7 @@ All notable changes to this project are documented in this file (Keep a Changelo
 - `state/session-state.json` now tracks log-notify goals, decisions, risks, and next actions.
 - Containerized CI adapted from Ursine: one verify job, Alpine CI image, test gate, static analysis, docs lint, duplicate gate, SBOM, and tag-driven static-musl release package.
 - Rust scaffold: `Cargo.toml`, `rust-toolchain.toml`, module skeletons, `--version` smoke test, and the shipped default config.
+- T3 config layer: serde/toml schema with `Spanned` errors, documented defaults, queue capacity range, source validation, default path resolution, and 14 tests.
 - Local container entry point `scripts/dev.sh` with the same gates as CI.
 
 ### Changed
