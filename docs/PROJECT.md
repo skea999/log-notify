@@ -66,7 +66,7 @@ point, not a hard dependency.
 | Risk | Likelihood | Impact | Mitigation |
 |------|-----------|--------|------------|
 | Shipped patterns drift from real log formats | Medium | Missed or noisy notifications | Config is data; fix the TOML only. Default set was validated against target logs. |
-| Configured log file missing at startup | Medium | Silent gap if the file appears later | Warn, watch the nearest existing parent, continue. Permission denied is fatal. |
+| Configured log file missing at startup | Medium | Silent gap if the file appears later | Warn, watch the nearest existing ancestor directory, continue. Permission denied is fatal. |
 | Non-UTF-8 log lines | Medium | Match failures or panic | Lossy conversion per line; fixture test with invalid bytes. |
 | Notification daemon absent or D-Bus drops | Medium | No visible notification | Retry transient errors 3 times, then drop and log. Tailing continues. |
 | Queue overflow under a burst or slow daemon | Medium | Oldest notifications dropped | Bounded per-source queue, default 10, max 100; every drop logged with reason. |

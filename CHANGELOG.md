@@ -9,7 +9,7 @@ All notable changes to this project are documented in this file (Keep a Changelo
 - `state/session-state.json` now tracks log-notify goals, decisions, risks, and next actions.
 ### Changed
 - Replaced skea-store template content in `AGENTS.md`, `CONTEXT.md`, `ROADMAP.md`, `docs/PROJECT.md`, and `docs/TASKS.md`.
-- Resolved v0.1 behavior decisions: missing-source warning/watch, lossy UTF-8, XDG fallback, direct inotify 0.11.x, edition 2024, first-match `--once`, config paths, `replaces_id` deferral, and generic config-only sources.
+- Resolved v0.1 behavior decisions: missing-source warning and ancestor watch, lossy UTF-8, XDG fallback, direct inotify 0.11.x, edition 2024, first-match `--once`, config paths, `replaces_id` deferral, and generic config-only sources.
 - Switched notification delivery to zbus 6.5 with a dedicated worker, bounded per-source queue (default 10, max 100), 3 retries with 1/2/4 s backoff, 5 s method timeout, and dropped-event log at `/var/log/log-notify.log` with stderr fallback.
 - Recorded the documentation-only initialization scope: no Rust code, Cargo scaffold, or CI workflow yet.
 ### Notes

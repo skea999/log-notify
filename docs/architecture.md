@@ -91,8 +91,10 @@ second implementation that prints events to stdout and never starts the worker.
    the dropped-event sink. This is not fatal.
 7. Open each enabled source and stat it. Record dev/inode and set offset to the
    current size.
-   - Missing path: warn, watch the nearest existing parent for creation, and
-     continue. A parent that cannot be watched is a warning, not a crash.
+   - Missing path: warn, watch the nearest existing ancestor directory for
+     creation, and continue. When an intermediate directory appears, re-resolve
+     the path and watch the next existing ancestor until the source file exists.
+     An ancestor that cannot be watched is a warning, not a crash.
    - Permission denied or another read error: exit non-zero with the path.
 8. Start the notifier worker and add inotify watches.
 9. Enter the event loop. Install SIGTERM/SIGINT handlers before or during
@@ -108,7 +110,9 @@ Blocking `read` on the inotify descriptor; no timer tick.
 For each inotify event:
 
 1. Map the watch descriptor to a source.
-2. On `MODIFY`, `CLOSE_WRITE`, or `CREATE`: read from the current offset.
+2. On `MODIFY`, `CLOSE_WRITE`, or `CREATE`: read from the current offset. For a
+   missing source, `CREATE` re-resolves the path and attaches the next existing
+   ancestor watch; when the source exists, open it at its current end.
 3. Ignore events that do not advance the offset.
 4. On shrink (`size < offset`): reset offset to 0 and read from the start of the
    new content. This covers copytruncate.
@@ -236,7 +240,7 @@ Per-source, monotonic clock, no persistence.
 | Invalid TOML, schema, regex, or queue capacity | Exit non-zero with file, line, reason | Decided |
 | Config file missing | Exit non-zero with the attempted paths | Decided |
 | No enabled sources | Config error | Decided |
-| Log file missing at startup | Warn, watch nearest existing parent, continue | Decided |
+| Log file missing at startup | Warn, watch nearest existing ancestor, continue | Decided |
 | Log file unreadable (permissions) | Exit non-zero, precise path | Decided |
 | Non-UTF-8 bytes | Lossy conversion per line | Decided |
 | `$XDG_RUNTIME_DIR` unset | `/run/user/<uid>` if present, else exit | Decided |

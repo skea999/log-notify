@@ -131,7 +131,7 @@ No async runtime. No network dependency.
 | Restart loses pending events | Medium | Documented; no persistence by design |
 | Retry duplicates a notification | Low | Accept duplicate over silent loss |
 | Dropped log not writable | Medium | One warning, stderr fallback |
-| Missing or unreadable sources | High | Warn and watch parent for missing; fail loud on permissions |
+| Missing or unreadable sources | High | Warn and watch nearest ancestor for missing; fail loud on permissions |
 | inotify edge cases on rename and delete | High | Test copytruncate, rename, delete/recreate, inode replacement |
 | Non-UTF-8 log content | Medium | Lossy conversion; fixture test |
 | zbus 6.5 API changes | Low | Pin minor version; async API + `block_on` is the boundary |
@@ -143,8 +143,9 @@ No async runtime. No network dependency.
 
 All v0.1 behavior questions are closed:
 
-1. **Missing source at startup.** Warn, watch the nearest existing parent for
-   creation, continue. Permission denied is fatal.
+1. **Missing source at startup.** Warn, watch the nearest existing ancestor
+   directory, continue. Re-resolve when intermediate directories are created.
+   Permission denied is fatal.
 2. **Non-UTF-8 lines.** `String::from_utf8_lossy` per line; no panic.
 3. **`$XDG_RUNTIME_DIR` unset.** Use `/run/user/<uid>` if present, else exit
    with a clear error.

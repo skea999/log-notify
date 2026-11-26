@@ -11,7 +11,7 @@
     "Read logs only; no native tool hooks; no replay or persistence; every source starts at end of file.",
     "Default config is data: sources, patterns, templates, urgency, cooldown, and queue capacity are TOML. No tool-specific code.",
     "TOML config with serde; compile every regex at startup; fail loud with file, line, and reason.",
-    "Missing log source at startup: warn, watch nearest existing parent, continue. Permission denied is fatal.",
+    "Missing log source at startup: warn, watch nearest existing ancestor directory, continue. Re-resolve when intermediate directories appear. Permission denied is fatal.",
     "Main loop never calls D-Bus. Dedicated notifier worker with a bounded per-source queue: default 10, range 1..=100.",
     "Queue overflow drops the oldest event of that source and logs it. No durable spool; pending events are lost on restart.",
     "Notification failures retry 3 times with 1/2/4 s backoff and a 5 s zbus method timeout; missing service or exhausted retries drop and log.",

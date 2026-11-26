@@ -162,13 +162,15 @@ keeps the capped prefix, discards the rest until the newline, and matches once.
 
 **Description:** Watch each source with inotify and drive reads from events. Map
 watch descriptors to sources, handle read races, watch the nearest existing
-parent for a missing source, and avoid polling.
+ancestor directory for a missing source, and avoid polling.
 
 **Acceptance criteria:**
 - [ ] Each enabled source has a watch on its path, or on its nearest existing
-      parent when the path is missing.
+      ancestor directory when the path is missing.
 - [ ] `MODIFY`, `CLOSE_WRITE`, and `CREATE` trigger a read or reopen.
 - [ ] A source created after startup is opened at its current end.
+- [ ] Intermediate directories created after startup are watched in turn until
+      the source path exists.
 - [ ] Events that do not advance the offset are ignored.
 - [ ] No busy loop and no timer tick when idle.
 - [ ] A failed watch is logged with the path and reason; other sources continue.
