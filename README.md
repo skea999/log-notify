@@ -1,5 +1,7 @@
 # log-notify
 
+[![CI](https://github.com/skea999/log-notify/actions/workflows/ci.yml/badge.svg)](https://github.com/skea999/log-notify/actions/workflows/ci.yml)
+
 Tail configured log files, match regular expressions, and emit freedesktop
 desktop notifications.
 

@@ -1,10 +1,10 @@
 {
   "goal": "log-notify v0.1: Rust daemon that tails configured log files, matches per-source regexes, and emits freedesktop notifications through D-Bus with reliable bounded delivery.",
-  "status": "scaffolded",
+  "status": "scaffolded-ci-green",
   "active_goals": [
     "Documentation, architecture, ADRs, plan, and decisions complete (2026-11-26).",
-    "CI copied from Ursine and adapted: containerized verify job, test gate, static analysis, docs lint, duplicates, SBOM, static-musl release.",
-    "Rust scaffold and default config in place; T1/T2 complete. v0.1 behavior starts at T3.",
+    "T1 scaffold and T2 containerized CI complete; GitHub Actions verify run 45864736126 is green.",
+    "v0.1 behavior starts at T3 (config model, TOML parsing, validation).",
     "Remote public repo: https://github.com/skea999/log-notify."
   ],
   "decisions": [
@@ -28,7 +28,6 @@
     "Rust scaffold uses edition 2024 and the direct inotify 0.11.x crate; daemon behavior is not implemented yet."
   ],
   "risks": [
-    "GitHub Actions has not run the new workflow yet; only the local container verify is proven.",
     "Queue overflow or permanent notification-service absence drops events; every drop is logged, but delivery is not guaranteed.",
     "Pending in-memory events are lost on restart by design.",
     "A retry after an uncertain reply can duplicate a notification. Accepted: duplicate over silent loss.",
@@ -37,9 +36,9 @@
     "Template Node/JS files remain in the repo because the OpenCode harness uses them; they are not the project stack."
   ],
   "next_actions": [
-    "Push the CI/scaffold commit and confirm the GitHub Actions verify job is green.",
-    "Mark T1/T2 done in tasks/todo.md and docs/TASKS.md after CI is green.",
     "Start T3: config model, TOML parsing, validation.",
-    "Implement queue/worker tests in T9 before daemon wiring."
+    "Implement T4 pattern/template engine after T3.",
+    "Add runtime dependencies only as tasks need them; cargo-machete rejects unused deps.",
+    "Keep every gate running through scripts/dev.sh and the CI container."
   ]
 }

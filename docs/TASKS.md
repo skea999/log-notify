@@ -10,8 +10,6 @@ Implementation plan: [`tasks/plan.md`](../tasks/plan.md).
 
 ### Todo
 
-- [ ] T1 — Cargo scaffold, toolchain, module skeleton
-- [ ] T2 — Containerized CI gates
 - [ ] T3 — Config model, TOML parsing, validation
 - [ ] T4 — Pattern and template engine
 - [ ] T5 — Tail engine: EOF start, complete lines, line cap
@@ -31,6 +29,8 @@ None.
 
 ### Done
 
+- [x] T1 — Cargo scaffold, toolchain, module skeleton — 2026-11-26
+- [x] T2 — Containerized CI gates — 2026-11-26; GitHub Actions run `45864736126` green
 - [x] Project initialization: docs, ADRs, plan, task list, state — 2026-11-26
 
 ## Backlog
@@ -44,7 +44,6 @@ None.
 | Issue | Status | Workaround |
 |-------|--------|------------|
 | Session-memory scripts fail on this host with Nix libc relocation errors | Open | Use context-mode `ctx_*` tools and `state/session-state.json` |
-| CI workflow does not exist yet | Open | Create it in T2, then run on the pushed branch |
 | `/var/log/log-notify.log` may not be writable by a user service | Open | Daemon warns once and falls back to stderr; service unit can grant access or set `general.dropped_log` |
 
 ---

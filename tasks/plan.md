@@ -57,12 +57,12 @@ No async runtime. No network dependency.
 
 ### Phase 1: Foundation
 
-- [ ] T1: Cargo scaffold, pinned toolchain, module skeleton
-- [ ] T2: Containerized CI gates
+- [x] T1: Cargo scaffold, pinned toolchain, module skeleton
+- [x] T2: Containerized CI gates
 
 **Checkpoint: Foundation**
-- [ ] `cargo fmt --check`, `cargo clippy -- -D warnings`, `cargo test` pass
-- [ ] CI workflow runs in a container and is green on a pushed branch
+- [x] `cargo fmt --check`, `cargo clippy -- -D warnings`, `cargo test` pass
+- [x] CI workflow runs in a container and is green on a pushed branch
 
 ### Phase 2: Config and matching
 

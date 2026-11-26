@@ -25,6 +25,7 @@ All notable changes to this project are documented in this file (Keep a Changelo
 - License decision: ISC, copyright skea999 (user choice 2026-11-26).
 - Default config is validated data; changing sources or patterns needs only a TOML edit.
 - Public remote created: `https://github.com/skea999/log-notify`; first documentation commit pushed.
+- GitHub Actions `verify` run `45864736126` is green on `main`; the release job is tag-gated.
 - Template harness files (`package.json`, `.opencode/`, `.agents/`, `scripts/`, `references/`) are intentionally kept; project code goes under `src/`.
 
 ## [Unreleased] — 2026-11-25

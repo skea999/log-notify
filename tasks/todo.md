@@ -15,18 +15,18 @@ the internals while `main.rs` stays thin. Use Rust edition 2024 and the direct
 `inotify` 0.11.x crate.
 
 **Acceptance criteria:**
-- [ ] `Cargo.toml` defines the `log-notify` binary and library.
-- [ ] `rust-toolchain.toml` pins a stable channel.
-- [ ] Rust edition 2024 is set in `Cargo.toml`.
-- [ ] `inotify` 0.11.x is selected for file events.
-- [ ] `src/main.rs`, `src/lib.rs`, `src/config.rs`, `src/tail.rs`,
+- [x] `Cargo.toml` defines the `log-notify` binary and library.
+- [x] `rust-toolchain.toml` pins a stable channel.
+- [x] Rust edition 2024 is set in `Cargo.toml`.
+- [x] The `inotify` 0.11.x choice is recorded in the plan and ADRs.
+- [x] `src/main.rs`, `src/lib.rs`, `src/config.rs`, `src/tail.rs`,
       `src/notify.rs`, and `src/cooldown.rs` exist with documented public stubs.
-- [ ] `cargo build` succeeds without warnings.
+- [x] `cargo build` succeeds without warnings.
 
 **Verification:**
-- [ ] `cargo build`
-- [ ] `cargo fmt --check`
-- [ ] `cargo clippy -- -D warnings`
+- [x] `cargo build`
+- [x] `cargo fmt --check`
+- [x] `cargo clippy -- -D warnings`
 
 **Dependencies:** None.
 
@@ -43,16 +43,16 @@ release build. Run the job inside a Rust container to honor the project's
 container-only execution rule. Pin the Rust version through the toolchain file.
 
 **Acceptance criteria:**
-- [ ] Workflow triggers on push and pull request.
-- [ ] Job runs in a container, not directly on the runner host.
-- [ ] Steps run `cargo fmt --check`, `cargo clippy -- -D warnings`,
+- [x] Workflow triggers on push and pull request.
+- [x] Job runs in a container, not directly on the runner host.
+- [x] Steps run `cargo fmt --check`, `cargo clippy -- -D warnings`,
       `cargo test`, and `cargo build --release`.
-- [ ] Failures block the job; no `continue-on-error`.
-- [ ] Artifacts and caches, if any, stay inside the workspace or CI cache.
+- [x] Failures block the job; no `continue-on-error`.
+- [x] Artifacts and caches, if any, stay inside the workspace or CI cache.
 
 **Verification:**
-- [ ] Push a branch and confirm the workflow is green.
-- [ ] Introduce a formatting error locally and confirm the check fails.
+- [x] Push a branch and confirm the workflow is green.
+- [x] Introduce a formatting error locally and confirm the check fails.
 
 **Dependencies:** Task 1.
 
@@ -61,8 +61,8 @@ container-only execution rule. Pin the Rust version through the toolchain file.
 **Estimated scope:** Small (1 file).
 
 **Checkpoint: Foundation**
-- [ ] All tests pass, clippy is clean, and CI is green.
-- [ ] Review with the human before config work.
+- [x] All tests pass, clippy is clean, and CI is green.
+- [x] Review with the human before config work.
 
 ## Phase 2: Config and matching
 
