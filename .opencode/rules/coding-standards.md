@@ -1,0 +1,34 @@
+---
+globs:
+  - "src/**/*.{ts,tsx,js,jsx,py,go,rs,sh,yml,yaml,tpl,tf,tfvars,json}"
+  - "src/**/Dockerfile*"
+  - "tests/**/*.{ts,tsx,js,jsx,py,go,json,tpl,yaml,yml,sh}"
+keywords:
+  - "implement"
+  - "refactor"
+  - "naming"
+  - "code"
+  - "tofu"
+  - "terraform"
+  - "ansible-principal-engineer"
+  - "playbook"
+  - "deploy"
+  - "config"
+  - "security"
+  - "vulnerability"
+  - "auth"
+  - "encrypt"
+  - "OWASP"
+  - "CVE"
+  - "audit"
+---
+- comments: WHY; errors: typed+logged
+- secrets: env vars only; gitignore .env* .pem .key
+- input: validate ALL(user,API,uploads); sanitize output; no SQLi/XSS
+- auth: established libs; rate limit; MFA; least privilege
+- data: encrypt at rest; TLS 1.3; mask PII
+- naming: camelCase(vars,funcs,folders) snake_case(files) PascalCase(classes,types,interfaces) UPPER_SNAKE(consts,enums)
+- per-language exceptions (follow the corresponding skill):
+  - Python: snake_case(vars,funcs) snake_case(files)
+  - Rust: snake_case(vars,funcs) snake_case(files,modules)
+  - Ruby: snake_case(vars,funcs) snake_case(files)

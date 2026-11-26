@@ -1,0 +1,36 @@
+{
+  "goal": "log-notify v0.1: Rust daemon that tails configured log files, matches per-source regexes, and emits freedesktop notifications through D-Bus.",
+  "status": "planned",
+  "active_goals": [
+    "Documentation, architecture, ADRs, plan, and task list initialized (2026-11-26).",
+    "v0.1 implementation not started; next step is T1 (Cargo scaffold)."
+  ],
+  "decisions": [
+    "Rust stable, single binary, Linux only, synchronous single-threaded event loop, inotify-driven with no polling.",
+    "Read logs only; no native tool hooks; no replay or persistence; every source starts at end of file.",
+    "TOML config with serde; compile every regex at startup; fail loud with file, line, and reason.",
+    "zbus 5.x blocking API; urgency low/normal/critical = 0/1/2; critical never expires; missing daemon drops event and keeps tailing.",
+    "Per-source cooldown; schema default 0, shipped config uses 60/30/0 values from the spec.",
+    "Line cap default 8192 bytes; partial lines buffered; shrink resets offset; inode change reopens at end.",
+    "License ISC, copyright skea999 (user decision 2026-11-26).",
+    "SIGHUP config reload deferred to v0.2; v0.1 requires restart.",
+    "Documentation-only initialization: no Cargo scaffold, source code, default config file, or CI workflow yet.",
+    "Template harness files (package.json, .opencode/, .agents/, scripts/, references/) are kept; project code goes under src/."
+  ],
+  "risks": [
+    "Tracee pattern in the shipped default config is an unverified placeholder and a release blocker.",
+    "Missing or unreadable log source behavior is still an open question in tasks/plan.md.",
+    "No GitHub remote yet, so CI and release workflows cannot be validated.",
+    "zbus 6 removed the blocking API; v0.1 pins zbus 5.x and a future upgrade requires an async refactor.",
+    "Session-memory scripts fail on this host with Nix libc relocation errors; context-mode ctx_* tools and this state file are the working alternative.",
+    "Template Node/JS files remain in the repo because the OpenCode harness uses them; they are not the project stack."
+  ],
+  "next_actions": [
+    "Approve tasks/plan.md and tasks/todo.md.",
+    "Resolve the open questions in tasks/plan.md before tail and notification implementation.",
+    "Start T1: create Cargo scaffold, rust-toolchain.toml, and module skeletons.",
+    "Create the GitHub remote before T2 so containerized CI can be validated.",
+    "Collect real tracee JSON and verify the tracee pattern before release.",
+    "Record the documentation initialization in CHANGELOG.md (done)."
+  ]
+}

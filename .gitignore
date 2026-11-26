@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Build output
+dist/
+build/
+target/
+*.tsbuildinfo
+coverage/
+
+# Environment
+.env*
+!.env.example
+
+# Editor
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Temporary
+tmp/
+temp/
+.tmp/
+
+# Agent installer backups (not the version/manifest files)
+.opencode/.backups/
+
+# Cross-agent skill links created by `skills update` (repo is opencode-only)
+.claude/
+.continue/
+
+# Agent artifacts (builds, test results, scans, temp files) — only .gitkeep tracked
+artifacts/*
+!artifacts/.gitkeep

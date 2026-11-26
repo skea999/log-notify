@@ -1,0 +1,30 @@
+---
+globs:
+  - "src/**/*.{ts,tsx,js,jsx,py,go,rs,yml,yaml,tpl,tf,tfvars,json}"
+  - "tests/**/*.{ts,tsx,js,jsx,py,go,md}"
+  - "docs/**/*.md"
+  - "*.md"
+  - "AGENTS.md"
+  - "ROADMAP.md"
+keywords:
+  - "workflow"
+  - "implement"
+  - "feature"
+  - "task"
+  - "plan"
+  - "commit"
+  - "deploy"
+  - "release"
+  - "ci/cd"
+  - "changelog"
+---
+- agent-chain (complex): @orchestrator → @planner (plan→state/session-state.json) → @codebase (reads state/session-state.json, impl) → parallel(@review @code-reviewer @vulnerability-scan @information-scan) → @debugger → @docs → save summary. @review takes lens briefs (requirements|code|security|ux-responsive — orchestrator-reference Pattern 8); security lens loads `security-audit`.
+- skill-chain (simple): 0: context+recall → 1: interview-me / idea-refine → 2: spec → 3: plan (+decision-grounding for high-stakes calls) → 4: code-change-impact blast-radius check, then implement (incremental-implementation | subagent-driven-development) → 4.1: parallel(@review @code-reviewer on git diff); if any blocker → 4 → 5: test-driven-development → 6: debugging → 7: code-review-and-quality + security-and-hardening + performance-optimization (parallel; security lens → security-audit) → 8: code-simplification → 9: grill-with-docs (+adr for architecture decisions) → 10: git-workflow-and-versioning → 11: ci-cd-and-automation → 12: deprecation-and-migration → 13: save summary
+- direct (simple): Tab-selectable primaries: `start-project`, `codebase`, `planner`, `legal-advisor`, `custom-researcher`, `blogger`, `em-advisor`, `orchestrator`. Specialists are subagents: ask a primary agent to dispatch.
+- high-stakes → `decision-grounding`; architecture decision → `adr`.
+- state: `state/session-state.json`.
+- changelog: changes go to `CHANGELOG.md` (Keep a Changelog, newest first). `AGENTS.md` = stable context + policy only.
+- parallel: indep features, agents-in-step, review+tests, policy
+- never parallel: tests(need code first)
+- session: mandatory; s=context+recall; d=save decision; e=save summary
+- git: conventional `type(scope):desc`; pre: build+tests+lint

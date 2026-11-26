@@ -1,0 +1,68 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugins": [
+    "opencode-rules@latest"
+  ],
+  "permissions": [
+    { "action": "shell", "resource": "sudo", "effect": "deny" },
+    { "action": "shell", "resource": "sudo *", "effect": "deny" },
+    { "action": "shell", "resource": "doas", "effect": "deny" },
+    { "action": "shell", "resource": "doas *", "effect": "deny" },
+    { "action": "shell", "resource": "*", "effect": "allow" },
+    { "action": "external_directory", "resource": "*", "effect": "ask" },
+    { "action": "doom_loop", "resource": "*", "effect": "deny" },
+    { "action": "*", "resource": "*", "effect": "allow" }
+  ],
+  "agents": {
+    "planner": {},
+    "review": {},
+    "code-reviewer": {},
+    "researcher": {},
+    "custom-researcher": {},
+    "debugger": {},
+    "test-automator": {},
+    "information-scan": {},
+    "vulnerability-scan": {},
+    "codebase": {},
+    "docs": {},
+    "documentation-engineer": {},
+    "performance-engineer": {},
+    "refactoring-specialist": {},
+    "blogger": {},
+    "brutal-critic": {},
+    "em-advisor": {},
+    "legal-advisor": {},
+    "penetration-tester": {},
+    "security-auditor": {},
+    "orchestrator": {
+      "permissions": [
+        { "action": "subagent", "resource": "planner", "effect": "allow" },
+        { "action": "subagent", "resource": "codebase", "effect": "allow" },
+        { "action": "subagent", "resource": "review", "effect": "allow" },
+        { "action": "subagent", "resource": "code-reviewer", "effect": "allow" },
+        { "action": "subagent", "resource": "vulnerability-scan", "effect": "allow" },
+        { "action": "subagent", "resource": "information-scan", "effect": "allow" },
+        { "action": "subagent", "resource": "debugger", "effect": "allow" },
+        { "action": "subagent", "resource": "test-automator", "effect": "allow" },
+        { "action": "subagent", "resource": "performance-engineer", "effect": "allow" },
+        { "action": "subagent", "resource": "refactoring-specialist", "effect": "allow" },
+        { "action": "subagent", "resource": "docs", "effect": "allow" },
+        { "action": "subagent", "resource": "documentation-engineer", "effect": "allow" },
+        { "action": "subagent", "resource": "researcher", "effect": "allow" },
+        { "action": "subagent", "resource": "custom-researcher", "effect": "allow" },
+        { "action": "subagent", "resource": "blogger", "effect": "allow" },
+        { "action": "subagent", "resource": "brutal-critic", "effect": "allow" },
+        { "action": "subagent", "resource": "legal-advisor", "effect": "allow" },
+        { "action": "subagent", "resource": "em-advisor", "effect": "allow" },
+        { "action": "subagent", "resource": "penetration-tester", "effect": "allow" },
+        { "action": "subagent", "resource": "security-auditor", "effect": "allow" },
+        { "action": "subagent", "resource": "legacy-modernizer", "effect": "allow" },
+        { "action": "subagent", "resource": "compliance-auditor", "effect": "allow" },
+        { "action": "subagent", "resource": "smart-contract-auditor", "effect": "allow" },
+        { "action": "subagent", "resource": "explore", "effect": "allow" },
+        { "action": "subagent", "resource": "general", "effect": "allow" },
+        { "action": "subagent", "resource": "*", "effect": "deny" }
+      ]
+    }
+  }
+}

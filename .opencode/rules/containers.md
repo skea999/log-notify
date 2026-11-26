@@ -1,0 +1,42 @@
+---
+globs:
+  - "**/Dockerfile*"
+  - "**/*.dockerfile"
+  - "**/docker-compose*.{yml,yaml}"
+  - "**/compose*.{yml,yaml}"
+  - "**/Chart.yaml"
+  - "**/values*.{yml,yaml}"
+  - ".github/workflows/*.{yml,yaml}"
+keywords:
+  - "docker"
+  - "container"
+  - "compose"
+  - "helm"
+  - "kubernetes"
+  - "k8s"
+  - "podman"
+  - "image"
+  - "sandbox"
+  - "volume"
+  - "mount"
+  - "artifact"
+  - "ci"
+  - "pipeline"
+  - "build"
+  - "test"
+  - "lint"
+  - "dedup"
+  - "scan"
+  - "sast"
+  - "vuln"
+  - "audit"
+  - "dependency"
+  - "install"
+---
+- execution: host NEVER touched. Containers only: CI, tests (unit/integration/e2e), dedup, secrets/PII scan, SAST, vuln scan, dependency install/audit/license.
+- container baseline: alpine base; `cap_drop: ALL`; `no-new-privileges`; `read_only` rootfs; non-root user.
+- docker: `alpine:3.23`; `&&` chain; `rm /var/cache/apk/* /tmp/* /usr/share/man/*`; `apk --no-cache --update --verbose`; runtime tzdata ca-certificates umask 0077 non-root; HEALTHCHECK only if endpoint.
+- compose: alpine; `cap_drop: ALL`; `no-new-privileges`; `read_only`; non-root.
+- helm: official charts; alpine; securityContext `runAsNonRoot`, `runAsUser`, drop ALL; resource limits; readOnlyFS; ConfigMap/Secret no hardcode.
+- mounts: project root read-only. Only writable mount under `artifacts/` (e.g. `- ./artifacts/tests:/work/artifacts/tests`). Never host `/tmp` or paths outside workspace.
+- pre-commit: pure-bash info scan only. Lint/test/dedup/dependency work goes to containerized CI.
