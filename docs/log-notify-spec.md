@@ -3,6 +3,7 @@
 **Purpose**: bootstrap a NEW, independent repo (`log-notify`) from zero. This file is the complete brief: an agent (or human) reading only this must be able to scaffold, implement, test, and ship v0.1 without touching the FeralOS installer. log-notify is a GENERIC tool that happens to ship a FeralOS-flavored default config; it has nothing to do with the installer and no FeralOS code dependency.
 
 **Origin decisions (2026-11-15, FeralOS security-stack round)**:
+
 - Read logs only (no native tool hooks like clamd `VirusEvent`) — uniform relay-on-log.
 - Editable config declaring WHICH logs to read + per-source regex patterns.
 - Name: `log-notify`. Separate repo from FeralOS.
@@ -11,6 +12,7 @@
 - Language: **Rust** (memory-safe daemon; binary weight is tiny — inotify-driven, no polling, few MB RSS).
 
 **v0.1 refinements (2026-11-26, see `docs/decisions/0008-bounded-notification-queue.md`)**:
+
 - zbus 6.5 async API driven by `zbus::block_on` in a dedicated notifier worker.
 - Bounded in-memory per-source notification queue: default 10, maximum 100.
 - Transient D-Bus failures retry 3 times with 1/2/4 s backoff and a 5 s method timeout.
@@ -28,7 +30,8 @@
 - **Platform**: Linux (inotify); Wayland/X11 agnostic (notifications go through D-Bus `org.freedesktop.Notifications`).
 - **License**: recommend dual MIT / Apache-2.0 (Rust ecosystem convention) — DECIDE before first publish.
 - **Repo layout** (suggested):
-  ```
+
+  ```text
   Cargo.toml
   src/main.rs            # CLI + startup + config load + fail-loud validation
   src/config.rs          # TOML parse + validation (regex compile at startup)
@@ -56,9 +59,10 @@
 
 ## 3. CLI
 
-```
+```text
 log-notify [--config PATH] [--dry-run] [--once] [--verbose] [--version]
 ```
+
 - `--config` default `/etc/log-notify/log-notify.toml`, then `~/.config/log-notify/log-notify.toml` if the first is absent.
 - `--dry-run`: everything runs, matched events print to stdout instead of notifying (pattern testing).
 - `--once`: exit after the first match (scripting/testing).
@@ -153,6 +157,7 @@ cooldown_secs = 30
 ## 9. FeralOS-side integration (DOWNSTREAM — NOT part of the new repo)
 
 Listed for context only; done later in the FeralOS repos:
+
 - aports package `log-notify` (cargo vendored tarball, tag-pinned per source-pinning policy).
 - User dinit unit `log-notify.user` + wrapper pattern (ADR-008/009 conventions), enabled per-DE via rules `userServices` (niriWayle/niri first).
 - The repo's shipped default config doubles as the FeralOS config (paths already FeralOS-shaped) — installed to `/etc/log-notify/log-notify.toml`.

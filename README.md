@@ -7,9 +7,9 @@ desktop notifications.
 security control: it reads logs, reports matches, and keeps running when the
 desktop notification service is absent.
 
-**Status:** documentation initialized on 2026-11-26. The Rust implementation is
-not started yet. The behavior below is the v0.1 contract defined by
-[`docs/log-notify-spec.md`](docs/log-notify-spec.md) and planned in
+**Status:** documentation, CI scaffold, and Rust scaffold initialized on
+2026-11-26. The daemon behavior is not implemented yet. The contract below is
+defined by [`docs/log-notify-spec.md`](docs/log-notify-spec.md) and planned in
 [`tasks/plan.md`](tasks/plan.md).
 
 ## Overview
@@ -130,10 +130,10 @@ reason. Silent misconfiguration is the worst failure mode for a notifier.
 
 ### Default config
 
-The repository will ship `config/log-notify.toml` with the FeralOS
-security-stack sources (task T13). The config is data: add, remove, or edit
-sources in TOML without changing code. The supplied patterns were validated
-against the target logs; if a log format changes later, fix only the config file.
+The repository ships `config/log-notify.toml` with the FeralOS security-stack
+sources. The config is data: add, remove, or edit sources in TOML without
+changing code. The supplied patterns were validated against the target logs; if
+a log format changes later, fix only the config file.
 
 ```toml
 # /etc/log-notify/log-notify.toml
@@ -267,28 +267,36 @@ on a specific desktop environment, notification theme, or compositor.
 
 ## Development
 
-Planned layout:
+Layout:
 
 ```text
 Cargo.toml
 rust-toolchain.toml
+ci/                CI container image
+scripts/           test, static, docs, duplicate, release gates
 src/main.rs        CLI, startup, config load, fail-loud validation
 src/config.rs      TOML parse and validation, regex compilation
 src/tail.rs        inotify tailer: offsets, partial lines, shrink reset
-src/notify.rs      notification backend
+src/notify.rs      queue, notifier worker, dropped log, zbus backend
 src/cooldown.rs    per-source rate limiting
-tests/             pattern, tail, cooldown, config tests
+tests/             smoke, pattern, tail, cooldown, config tests
 config/            shipped default config
 ```
 
-Planned quality gates:
+Quality gates run inside the CI container; the host toolchain is not used:
 
 ```bash
-cargo fmt --check
-cargo clippy -- -D warnings
-cargo test
-cargo build --release
+scripts/dev.sh image      # build log-notify-ci:ci
+scripts/dev.sh check      # fmt + clippy-driven test gate
+scripts/dev.sh static     # typos, shellcheck, shfmt, taplo, actionlint,
+                         # zizmor, gitleaks, cargo-geiger, cargo-deny,
+                         # cargo-audit, cargo-machete, jscpd, SBOM
+scripts/dev.sh docs       # markdownlint-cli2
+scripts/dev.sh verify     # static + docs + static-musl release package
 ```
+
+CI runs the same sequence in a container. The release package is built with
+`x86_64-unknown-linux-musl` and must have zero dynamic dependencies.
 
 The notification backend is zbus 6.5 with a dedicated worker. The file-event
 backend is the direct `inotify` crate, Linux only.

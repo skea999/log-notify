@@ -39,7 +39,7 @@ cd .opencode && nix-shell -p nodejs_24 --run "npm install --no-audit --no-fund" 
    - `temperature:` → drop (no V2 effect on agents)
    - `disable:` → `disabled:`; `tools:` maps → deny/allow permission rules
 2. Command frontmatter: `subtask:` → `subagent:`
-3. Quote `description:` values containing `: ` (YAML rejects unquoted multi-colon scalars)
+3. Quote `description:` values containing `:` (YAML rejects unquoted multi-colon scalars)
 4. Quote `resource:`/`action:` values equal to `*` or starting with `*` (`*.env`, `*`) —
    a bare leading `*` is a YAML alias token; always emit them as `"*"` / `"*.env"`
 
@@ -120,7 +120,7 @@ Review and edit manually if the global policy changes.
 
 ## Context7 MCP API key
 
-If the key in `~/.config/opencode/opencode.json` expires, replace it from https://context7.com.
+If the key in `~/.config/opencode/opencode.json` expires, replace it from <https://context7.com>.
 
 ## Verify after updating
 

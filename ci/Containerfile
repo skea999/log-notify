@@ -1,0 +1,36 @@
+# log-notify CI image (Alpine 3.24, musl). Build, tests, static analysis, docs,
+# and release packaging all run here. The host never runs the toolchain.
+#
+#   podman build -t log-notify-ci:ci -f ci/Containerfile .
+#   podman run --rm --network=host -v "$PWD:/work" -w /work \
+#     -e CARGO_HOME=/work/artifacts/cargo-home log-notify-ci:ci sh scripts/verify.sh
+FROM alpine:3.24
+
+RUN apk add --no-cache \
+    bash binutils ca-certificates curl git nodejs npm tar \
+    build-base openssl-dev pkgconf \
+    rustup \
+    cargo-deny cargo-audit cargo-cyclonedx \
+    typos taplo zizmor actionlint shellcheck shfmt editorconfig-checker \
+    && rm -rf /var/cache/apk/*
+
+# edge/testing is tagged explicitly so it cannot silently upgrade unrelated
+# 3.24 packages.
+RUN echo "@edge https://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories
+
+RUN apk add --no-cache \
+    cargo-geiger@edge cargo-machete@edge gitleaks@edge \
+    && rm -rf /var/cache/apk/*
+
+# Pinned toolchain, same as rust-toolchain.toml.
+RUN rustup-init -y --no-modify-path --profile minimal \
+    --default-toolchain 1.99.1 -c clippy -c rustfmt
+
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+# Pinned npm tools: clone detection and docs lint.
+RUN npm install -g jscpd@4.3.0 markdownlint-cli2@0.24.0 \
+    && npm cache clean --force
+
+# Keep build output inside the mounted workspace.
+ENV CARGO_TARGET_DIR=/work/artifacts/target

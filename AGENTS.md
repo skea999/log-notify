@@ -9,8 +9,8 @@ D-Bus `org.freedesktop.Notifications` via zbus 6.5. TOML config, Rust `regex`
 patterns. Main loop never calls D-Bus; a bounded queue and a dedicated notifier
 worker isolate delivery.
 
-**State:** documentation and plan complete (2026-11-26). No Rust implementation
-yet. Canonical work list: `tasks/todo.md`.
+**State:** documentation, CI scaffold, and Rust scaffold in place (2026-11-26).
+Daemon behavior not implemented yet. Canonical work list: `tasks/todo.md`.
 
 ## Project Structure
 
@@ -21,8 +21,10 @@ src/config.rs        TOML parse and validation, regex compilation
 src/tail.rs          inotify tailer: offsets, partial lines, shrink reset
 src/notify.rs        notification queue, worker, dropped log, zbus backend
 src/cooldown.rs      per-source rate limiting
-tests/               pattern, tail, cooldown, config tests
+tests/               smoke, pattern, tail, cooldown, config tests
 config/              shipped default config
+ci/                  CI container image
+scripts/             test, static, docs, duplicate, release gates
 docs/                spec, architecture, ADRs, project and task docs
 docs/decisions/      Architecture Decision Records
 tasks/               implementation plan and ordered task list
@@ -35,7 +37,17 @@ harness (`package.json`, `.opencode/`, `.agents/`, `.githooks/`, `scripts/`,
 
 ## Commands
 
-Planned v0.1 commands:
+Containerized gates (host toolchain is not used):
+
+```bash
+scripts/dev.sh image      # build log-notify-ci:ci
+scripts/dev.sh check      # fmt + clippy-driven test gate
+scripts/dev.sh static     # full static analysis
+scripts/dev.sh docs       # markdownlint-cli2
+scripts/dev.sh verify     # static + docs + static-musl release package
+```
+
+Direct commands for a host with Rust:
 
 ```bash
 cargo build --release

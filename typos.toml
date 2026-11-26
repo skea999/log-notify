@@ -1,0 +1,45 @@
+[files]
+extend-exclude = [
+  ".git/**",
+  "artifacts/**",
+  ".agents/**",
+  ".opencode/**",
+  "references/**",
+  "handoff/**",
+  "state/**",
+  "Cargo.lock",
+  "package.json",
+  "skills-lock.json",
+]
+
+[default]
+extend-ignore-identifiers-re = [
+  "skea999",
+  "feralos.*",
+  "log-notify",
+  "fail2ban.*",
+  "clamav.*",
+  "tracee.*",
+  "auditd.*",
+  "dinit.*",
+  "musl.*",
+  "zbus.*",
+  "wayland.*",
+  "x11.*",
+]
+
+[default.extend-words]
+skea999 = "skea999"
+feralos = "feralos"
+fail2ban = "fail2ban"
+clamav = "clamav"
+tracee = "tracee"
+auditd = "auditd"
+dinit = "dinit"
+musl = "musl"
+zbus = "zbus"
+wayland = "wayland"
+x11 = "x11"
+apk = "apk"
+nix = "nix"
+toml = "toml"

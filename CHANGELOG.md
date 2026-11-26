@@ -3,16 +3,25 @@
 All notable changes to this project are documented in this file (Keep a Changelog format, newest first). Policy: `.opencode/rules/workflow.md`.
 
 ## [Unreleased] — 2026-11-26
+
 ### Added
+
 - Project initialization for `log-notify`: README with CLI and config reference, project context, domain vocabulary, architecture, roadmap, project brief, implementation plan, and ordered task list.
 - ADRs 0001–0008: ADR process, Rust daemon, read-only log relay, zbus 6.5 backend, TOML fail-loud config, ISC license, SIGHUP reload deferred to v0.2, and bounded notification queue.
 - `state/session-state.json` now tracks log-notify goals, decisions, risks, and next actions.
+- Containerized CI adapted from Ursine: one verify job, Alpine CI image, test gate, static analysis, docs lint, duplicate gate, SBOM, and tag-driven static-musl release package.
+- Rust scaffold: `Cargo.toml`, `rust-toolchain.toml`, module skeletons, `--version` smoke test, and the shipped default config.
+- Local container entry point `scripts/dev.sh` with the same gates as CI.
+
 ### Changed
+
 - Replaced skea-store template content in `AGENTS.md`, `CONTEXT.md`, `ROADMAP.md`, `docs/PROJECT.md`, and `docs/TASKS.md`.
 - Resolved v0.1 behavior decisions: missing-source warning and ancestor watch, lossy UTF-8, XDG fallback, direct inotify 0.11.x, edition 2024, first-match `--once`, config paths, `replaces_id` deferral, and generic config-only sources.
 - Switched notification delivery to zbus 6.5 with a dedicated worker, bounded per-source queue (default 10, max 100), 3 retries with 1/2/4 s backoff, 5 s method timeout, and dropped-event log at `/var/log/log-notify.log` with stderr fallback.
-- Recorded the documentation-only initialization scope: no Rust code, Cargo scaffold, or CI workflow yet.
+- Recorded the initial documentation-only scope; the Rust scaffold and CI are now in place.
+
 ### Notes
+
 - License decision: ISC, copyright skea999 (user choice 2026-11-26).
 - Default config is validated data; changing sources or patterns needs only a TOML edit.
 - Public remote created: `https://github.com/skea999/log-notify`; first documentation commit pushed.
@@ -21,9 +30,11 @@ All notable changes to this project are documented in this file (Keep a Changelo
 ## [Unreleased] — 2026-11-25
 
 ### Added
+
 - `start-project` primary agent: new-project documentation bootstrap chain (`interview-me` → `spec-driven-development` → `planning-and-task-breakdown` → `project-bootstrap` → `adr` → `api-documentation` → `grill-with-docs`); registered in `docs/agents-guide.md` and `.opencode/rules/start-project.md`.
 
 ### Changed
+
 - Trimmed always-loaded `AGENTS.md` to artifacts, docs pointers, and deferred decisions; moved workflow/direct/changelog into `.opencode/rules/workflow.md`, agent/skill provenance into `docs/agents-guide.md` and `docs/update.md`, and git-hook setup into `docs/repo-setup.md`.
 - Moved session-memory commands out of always-loaded `AGENTS.md` into conditionally injected `.opencode/rules/session.md` (keywords include `commit`, `push`, `tag`).
 - Moved the new-project start workflow out of always-loaded `AGENTS.md` into conditionally injected `.opencode/rules/start-project.md`.
@@ -31,6 +42,7 @@ All notable changes to this project are documented in this file (Keep a Changelo
 - Removed the per-agent `steps` cap from every `.opencode/agents/*.md` frontmatter; agents now run without an explicit model-step limit.
 
 ### Fixed
+
 - Pre-commit hook passed patterns starting with `-` as grep options; added `--` so the private-key regex actually runs instead of silently erroring.
 - agents-opencode plugin failed to load on OpenCode v2.3.0 (`PluginModule.LoadError: Plugin must export a default definition`): `.opencode/` pack regenerated 2.6.0 → 4.3.5 with `--target v2`. Plugin now uses `export default`; installer removed the retired `agents-opencode` entry from the `opencode.json` plugin array.
 - Agent split: pack `researcher` is installer-managed again (manifest entry restored) and the custom Context7 agent is preserved as `.opencode/agents/custom-researcher.md` (V2 frontmatter, agent map + orchestrator allowlist, kept out of the manifest).
@@ -38,6 +50,7 @@ All notable changes to this project are documented in this file (Keep a Changelo
 - `ctx_doctor` now passes every check: context-mode `2.0.0-next.40` → `2.2.3`, plugin hooks + `mcp.context-mode` tools configured by official `context-mode setup`, global config renamed `opencode.jsonc` → `opencode.json` (doctor reads only that filename).
 
 ### Changed
+
 - Harness refreshed per `docs/update.md`: caveman + cavecrew reinstalled globally; generated duplicate V1 `plugin` key merged into the V2 `plugins` array; cavecrew agents re-downloaded.
 - Universal skills updated with `npx skills update` (24 refreshed). Upstream-deleted `improve-codebase-architecture` kept locally.
 - Template agent packs `quality` + `security` reinstalled (10 agents). Nested `devtools/`/`security/` outputs promoted to flat `.opencode/agents/` and nested dirs removed, keeping one copy per agent and matching the orchestrator allowlist.
@@ -48,6 +61,7 @@ All notable changes to this project are documented in this file (Keep a Changelo
 ## [Unreleased] — 2026-10-16
 
 ### Changed
+
 - opencode: removed static `model` overrides from `code-reviewer`, `information-scan`, `vulnerability-scan` in `opencode.json` — all agents and subagents now use the model selected in opencode (no agent md file carried a model override). Verified in merged config: zero agents with model override.
 - opencode permissions (global + project): everything allowed except privilege escalation — `sudo`/`sudo *`/`doas`/`doas *` bash patterns denied (doas included: it is Alpine's sudo-equivalent). Verified in merged config.
 - ast-grep installed globally on the host (`apk`, Alpine pkg v0.28.1 — npm/GitHub ship gnu-only builds, no musl; project-local npm install impossible on this host). Agent skill installed globally (`~/.agents/skills/`: `ast-grep` + `ast-grep-outline` — opencode loads that dir natively). Preference rules in global `AGENTS.md` (`ast-grep-begin` block). Documented in `docs/global-setup.md` §4.
@@ -67,6 +81,7 @@ All notable changes to this project are documented in this file (Keep a Changelo
 - `AGENTS.md` no longer receives change logs — `CHANGELOG.md` is the single source for notable changes.
 
 ### Fixed
+
 - `researcher` agent restored from git after v2.6.0 update overwrote the custom version (manifest had it listed as managed).
 - Template agents pack installed into `.opencode/agents/devtools/` and `.opencode/agents/security/` subdirs, which opencode does not load — the 3 new agents (`legacy-modernizer`, `compliance-auditor`, `smart-contract-auditor`) were invisible. Promoted them to flat `.opencode/agents/`, removed the pack dirs (7 remaining files were byte-identical duplicates of manifest-managed agents).
 - `.gitignore`: `!artifacts/.gitkeep` negation did not work (`artifacts/` excluded the whole dir); now `artifacts/*` + `!artifacts/.gitkeep` — verified with `git check-ignore`.
@@ -74,14 +89,17 @@ All notable changes to this project are documented in this file (Keep a Changelo
 - `.githooks/pre-commit`: removed host-side `npx lint-staged` (violated container-only policy); hook keeps only the pure-bash secrets/PII scan.
 
 ### Removed
+
 - Stale skill reference files replaced upstream (old checklists/`.gitkeep` files under `.agents/skills/`).
 
 ### Docs
+
 - `docs/agents-guide.md`: added the 3 new agents, updated `@review` (lens briefs) and `@em-advisor` (meetings instructions) descriptions.
 - `AGENTS.md`: added Changelog Policy, Container-Only Execution, Artifacts and Temp Files, Artifact Retention sections; caveman-style pass on the new policy sections (wording only, rules unchanged).
 - `handoff/latest.md`: milestone log now points to `CHANGELOG.md` instead of `AGENTS.md`.
 
 ### Notes
+
 - Upstream deleted skill `improve-codebase-architecture` (from `anomalyco/opencode`); local copy kept, deletion skipped in non-interactive mode.
 - New untracked marker `.opencode-agents-version` at repo root (written by agents-opencode v2.6.0) — decide: track or gitignore.
 - Local git identity for this repo: `skea999 <sket999@disroot.org>` (repo-only config).

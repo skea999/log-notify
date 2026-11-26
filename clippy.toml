@@ -1,0 +1,12 @@
+# Tests may use unwrap/expect/panic/prints.
+allow-unwrap-in-tests = true
+allow-expect-in-tests = true
+allow-dbg-in-tests = true
+allow-print-in-tests = true
+allow-panic-in-tests = true
+allow-indexing-slicing-in-tests = true
+
+# Runtime temp files go under artifacts/, never the host temp dir.
+[[disallowed-methods]]
+path = "std::env::temp_dir"
+reason = "temp files must go under artifacts/, never the host temp dir"

@@ -41,6 +41,7 @@ _Avoid_: max line, limit
 
 **Rotation**
 Replacement or truncation of a log file. Two cases matter:
+
 - **copytruncate:** the file shrinks below the last offset; reset the offset to 0.
 - **inode change:** the path now points to a different file; reopen it from its
   current end.

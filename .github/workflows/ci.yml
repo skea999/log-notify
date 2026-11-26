@@ -1,0 +1,148 @@
+# log-notify CI — two jobs, linear by design.
+#
+#   verify   ONE job, ONE image (ci/Containerfile → log-notify-ci:ci): build,
+#            code tests, static analysis, docs, release binary. Push/PR:
+#            everything runs, the release package is uploaded on tags only.
+#   release  tag only: download the package produced by verify and publish the
+#            GitHub release. Write permission is scoped to this job.
+#
+# Host isolation: no toolchain on the runner; every command runs in a container.
+# Cargo caches are restore-only from untrusted refs; only main may save.
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: never
+  CARGO_INCREMENTAL: "0"
+  CI_IMAGE: log-notify-ci:ci
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Resolve version and validate the tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          version=$(sed -n 's/^version = "\(.*\)"$/\1/p' Cargo.toml | head -n 1)
+          test -n "$version"
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+          if [ "$GITHUB_REF_TYPE" = "tag" ]; then
+            test "$GITHUB_REF_NAME" = "v$version"
+          fi
+
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v3
+
+      - name: Build the CI image
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v6
+        with:
+          context: .
+          file: ci/Containerfile
+          tags: log-notify-ci:ci
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: |
+            artifacts/cargo-home/registry/index
+            artifacts/cargo-home/registry/cache
+            artifacts/cargo-home/git/db
+            artifacts/target
+          key: cargo-verify-${{ hashFiles('Cargo.lock', 'rust-toolchain.toml', 'ci/Containerfile') }}
+          restore-keys: |
+            cargo-verify-
+
+      - name: Open the artifact run directory
+        run: |
+          run=$(sh scripts/run-dir.sh)
+          test -n "$run"
+          echo "RUN_DIR=$run" >> "$GITHUB_ENV"
+
+      - name: Verify — build, tests, static, docs, release binary
+        run: |
+          docker run --rm --network=host -v "$PWD:/work" -w /work \
+            -e CARGO_HOME=/work/artifacts/cargo-home \
+            -e RUST_MIN_STACK=16777216 \
+            -e "LOG_NOTIFY_RUN_DIR=/work/$RUN_DIR" \
+            log-notify-ci:ci sh scripts/verify.sh
+
+      - name: Build the release package (tag)
+        if: github.ref_type == 'tag'
+        run: |
+          docker run --rm --network=host -v "$PWD:/work" -w /work \
+            -e CARGO_HOME=/work/artifacts/cargo-home \
+            -e "LOG_NOTIFY_RUN_DIR=/work/$RUN_DIR" \
+            log-notify-ci:ci sh scripts/package-release.sh --release \
+            "log-notify-${GITHUB_REF_NAME}-x86_64-musl.tar.gz"
+
+      - name: Upload the release package (tag)
+        if: github.ref_type == 'tag'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: release-package
+          path: ${{ env.RUN_DIR }}/release/*
+          if-no-files-found: error
+
+      - name: Save Cargo cache (main only)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        continue-on-error: true
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: |
+            artifacts/cargo-home/registry/index
+            artifacts/cargo-home/registry/cache
+            artifacts/cargo-home/git/db
+            artifacts/target
+          key: cargo-verify-${{ hashFiles('Cargo.lock', 'rust-toolchain.toml', 'ci/Containerfile') }}
+
+  release:
+    if: github.ref_type == 'tag'
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: release-package
+          path: release
+
+      - name: Publish the tag release
+        working-directory: release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -eu
+          sha256sum -c ./*.sha256
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 \
+            || gh release create "$GITHUB_REF_NAME" --draft=false \
+              --title "$GITHUB_REF_NAME" --generate-notes
+          assets=$(gh release view "$GITHUB_REF_NAME" --json assets --jq '.assets[].name')
+          for artifact in ./*.tar.gz ./*.sha256; do
+            name=$(basename "$artifact")
+            if printf '%s\n' "$assets" | grep -Fxq "$name"; then
+              echo "already published: $name"
+            else
+              gh release upload "$GITHUB_REF_NAME" "$artifact"
+            fi
+          done

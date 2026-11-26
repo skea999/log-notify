@@ -9,15 +9,15 @@ echo "=== Pre-commit: Information Scan ==="
 
 # Patterns to block
 PATTERNS=(
-  'AKIA[0-9A-Z]{16}'                          # AWS Access Key
-  '-----BEGIN[[:space:]]*(RSA|EC|OPENSSH|DSA)[[:space:]]*PRIVATE KEY-----'  # Private key
-  'ghp_[0-9a-zA-Z]{36}'                       # GitHub PAT
-  'gho_[0-9a-zA-Z]{36}'                       # GitHub OAuth
-  'ghu_[0-9a-zA-Z]{36}'                       # GitHub user token
-  'sk-[0-9a-zA-Z]{32,}'                       # OpenAI API key
-  'xox[baprs]-[0-9a-zA-Z]{10,}'               # Slack token
-  'PGP[[:space:]]+PRIVATE[[:space:]]+KEY'     # PGP key
-  $'(password|secret|api_key|apikey)[[:space:]]*[:=][[:space:]]*["\'][^"\']{8,}["\']'  # Generic secret
+  'AKIA[0-9A-Z]{16}'                                                                  # AWS Access Key
+  '-----BEGIN[[:space:]]*(RSA|EC|OPENSSH|DSA)[[:space:]]*PRIVATE KEY-----'            # Private key
+  'ghp_[0-9a-zA-Z]{36}'                                                               # GitHub PAT
+  'gho_[0-9a-zA-Z]{36}'                                                               # GitHub OAuth
+  'ghu_[0-9a-zA-Z]{36}'                                                               # GitHub user token
+  'sk-[0-9a-zA-Z]{32,}'                                                               # OpenAI API key
+  'xox[baprs]-[0-9a-zA-Z]{10,}'                                                       # Slack token
+  'PGP[[:space:]]+PRIVATE[[:space:]]+KEY'                                             # PGP key
+  $'(password|secret|api_key|apikey)[[:space:]]*[:=][[:space:]]*["\'][^"\']{8,}["\']' # Generic secret
 )
 
 # Files staged for commit

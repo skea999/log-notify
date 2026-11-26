@@ -1,0 +1,46 @@
+# /etc/log-notify/log-notify.toml
+
+[general]
+line_cap_bytes = 8192
+dropped_log = "/var/log/log-notify.log"
+
+[[source]]
+path = "/var/log/fail2ban.log"
+pattern = ' Ban [0-9]+\.[0-9]+\.[0-9]+\.[0-9]+ '
+summary = "fail2ban ban"
+body    = "{line}"
+urgency = "normal"
+cooldown_secs = 60
+queue_capacity = 10
+
+[[source]]
+path = "/var/log/clamav/clamd.log"
+pattern = ' FOUND$'
+summary = "clamav detection"
+body    = "{line}"
+urgency = "critical"
+cooldown_secs = 0
+
+[[source]]
+path = "/var/log/dinit/tracee.log"
+pattern = '"signature"'
+summary = "tracee detection"
+body    = "{line}"
+urgency = "critical"
+cooldown_secs = 30
+
+[[source]]
+path = "/var/log/aide/aide.log"
+pattern = '^(added|removed|changed): '
+summary = "aide file change"
+body    = "{line}"
+urgency = "normal"
+cooldown_secs = 0
+
+[[source]]
+path = "/var/log/audit/audit.log"
+pattern = ' type=\S+ msg=.*key="(identity|sudoers|time-change|modules|system_init|sshd_config)"'
+summary = "auditd watch hit"
+body    = "{line}"
+urgency = "critical"
+cooldown_secs = 30

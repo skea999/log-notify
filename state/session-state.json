@@ -1,10 +1,11 @@
 {
   "goal": "log-notify v0.1: Rust daemon that tails configured log files, matches per-source regexes, and emits freedesktop notifications through D-Bus with reliable bounded delivery.",
-  "status": "planned",
+  "status": "scaffolded",
   "active_goals": [
-    "Documentation, architecture, ADRs, plan, and task list initialized and decisions resolved (2026-11-26).",
-    "Remote public repo created: https://github.com/skea999/log-notify; main pushed at commit 2a36e45.",
-    "v0.1 implementation not started; next step is T1 (Cargo scaffold)."
+    "Documentation, architecture, ADRs, plan, and decisions complete (2026-11-26).",
+    "CI copied from Ursine and adapted: containerized verify job, test gate, static analysis, docs lint, duplicates, SBOM, static-musl release.",
+    "Rust scaffold and default config in place; T1/T2 complete. v0.1 behavior starts at T3.",
+    "Remote public repo: https://github.com/skea999/log-notify."
   ],
   "decisions": [
     "Rust stable, edition 2024, single binary, Linux only, synchronous main loop, inotify-driven with no polling.",
@@ -21,21 +22,24 @@
     "XDG_RUNTIME_DIR unset: use /run/user/<uid> if present, else exit with a clear error.",
     "--once exits after the first regex match is processed; normal mode waits for delivery or drop outcome. Config paths: /etc/log-notify/log-notify.toml, then ~/.config/log-notify/log-notify.toml.",
     "License ISC, copyright skea999.",
-    "SIGHUP config reload deferred to v0.2; v0.1 requires restart."
+    "SIGHUP config reload deferred to v0.2; v0.1 requires restart.",
+    "CI adapted from Ursine: one containerized verify job, Alpine image, clippy-driven test gate, static/SAST/deps/duplicates/SBOM/docs gates, tag-driven static-musl release. No Ursine Nix/GUI/installer jobs.",
+    "Host toolchain is not used: every gate runs in the container through scripts/dev.sh or GitHub Actions.",
+    "Rust scaffold uses edition 2024 and the direct inotify 0.11.x crate; daemon behavior is not implemented yet."
   ],
   "risks": [
+    "GitHub Actions has not run the new workflow yet; only the local container verify is proven.",
     "Queue overflow or permanent notification-service absence drops events; every drop is logged, but delivery is not guaranteed.",
     "Pending in-memory events are lost on restart by design.",
     "A retry after an uncertain reply can duplicate a notification. Accepted: duplicate over silent loss.",
     "/var/log/log-notify.log may not be writable by a user-session service; stderr fallback is implemented.",
-    "No CI workflow yet; create it in T2 and run it on the pushed branch.",
     "Session-memory scripts fail on this host with Nix libc relocation errors; context-mode ctx_* tools and this state file are the working alternative.",
     "Template Node/JS files remain in the repo because the OpenCode harness uses them; they are not the project stack."
   ],
   "next_actions": [
-    "Approve the resolved plan and task list.",
-    "Start T1: Cargo scaffold, rust-toolchain.toml, edition 2024, direct inotify 0.11.x, module skeletons.",
-    "Create the containerized CI workflow in T2 and validate it on the pushed branch.",
-    "Implement the bounded queue and notifier worker in T9 with retry/drop-log tests."
+    "Push the CI/scaffold commit and confirm the GitHub Actions verify job is green.",
+    "Mark T1/T2 done in tasks/todo.md and docs/TASKS.md after CI is green.",
+    "Start T3: config model, TOML parsing, validation.",
+    "Implement queue/worker tests in T9 before daemon wiring."
   ]
 }

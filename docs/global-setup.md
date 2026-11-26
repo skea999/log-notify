@@ -255,7 +255,7 @@ caveman block is installer-managed — never hand-edit it.
 
 ## 7. Context7 MCP
 
-Configured in the global `mcp.servers.context7` section (section 2). Requires a valid API key from https://context7.com.
+Configured in the global `mcp.servers.context7` section (section 2). Requires a valid API key from <https://context7.com>.
 
 ## 8. Permission Configuration
 

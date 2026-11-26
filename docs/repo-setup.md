@@ -36,4 +36,3 @@ Edit `AGENTS.md`:
 
 - `Stack: <your-stack>`
 - `Deferred` items can be resolved (lint, typecheck, test scripts in `package.json`)
-

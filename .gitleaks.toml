@@ -1,0 +1,15 @@
+title = "log-notify gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Third-party docs, fixtures, lockfiles, and generated artifacts"
+paths = [
+  '''tests/''',
+  '''artifacts/''',
+  '''.agents/''',
+  '''.opencode/''',
+  '''references/''',
+  '''Cargo.lock''',
+]

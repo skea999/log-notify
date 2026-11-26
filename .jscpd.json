@@ -1,0 +1,18 @@
+{
+  "minTokens": 50,
+  "mode": "mild",
+  "format": ["rust", "shell"],
+  "path": ["src", "scripts", "tests", "ci", ".github"],
+  "ignore": [
+    "**/artifacts/**",
+    "**/.git/**",
+    "**/.agents/**",
+    "**/.opencode/**",
+    "**/references/**",
+    "**/Cargo.lock"
+  ],
+  "reporters": ["console", "json"],
+  "output": "artifacts/duplicates/jscpd",
+  "threshold": 0,
+  "gitignore": true
+}
