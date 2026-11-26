@@ -10,6 +10,8 @@ use serde::Deserialize;
 use thiserror::Error;
 use toml::Spanned;
 
+use crate::pattern::{CompiledPattern, PatternError};
+
 /// Default maximum bytes considered per log line.
 pub const DEFAULT_LINE_CAP_BYTES: usize = 8192;
 /// Default dropped-event log path.
@@ -22,7 +24,7 @@ pub const MAX_QUEUE_CAPACITY: usize = 100;
 pub const SYSTEM_CONFIG_PATH: &str = "/etc/log-notify/log-notify.toml";
 
 /// Fully validated runtime configuration.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone)]
 pub struct Config {
     /// Global settings.
     pub general: General,
@@ -40,16 +42,18 @@ pub struct General {
 }
 
 /// One configured log source.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone)]
 pub struct Source {
     /// Log file path.
     pub path: PathBuf,
-    /// Rust `regex` pattern, compiled by the pattern engine.
+    /// Rust `regex` pattern source.
     pub pattern: String,
-    /// Notification title template.
+    /// Notification title template source.
     pub summary: String,
-    /// Notification body template.
+    /// Notification body template source.
     pub body: String,
+    /// Compiled regex and templates.
+    pub compiled: CompiledPattern,
     /// Notification urgency.
     pub urgency: Urgency,
     /// Per-source suppression window after enqueue.
@@ -174,11 +178,44 @@ impl Config {
         for (index, raw_source) in raw.sources.into_iter().enumerate() {
             let number = index + 1;
             let source_path = required_text(path, text, number, "path", raw_source.path, true)?;
-            let pattern = required_text(path, text, number, "pattern", raw_source.pattern, false)?;
-            let summary = required_text(path, text, number, "summary", raw_source.summary, true)?;
-            let body = raw_source
+            let pattern_span = raw_source.pattern.span();
+            let pattern_text =
+                required_text(path, text, number, "pattern", raw_source.pattern, false)?;
+            let summary_span = raw_source.summary.span();
+            let summary_text =
+                required_text(path, text, number, "summary", raw_source.summary, true)?;
+            let body_span = raw_source.body.as_ref().map(Spanned::span);
+            let body_text = raw_source
                 .body
                 .map_or_else(String::new, Spanned::into_inner);
+            let compiled = match CompiledPattern::compile(&pattern_text, &summary_text, &body_text)
+            {
+                Ok(compiled) => compiled,
+                Err(PatternError::Regex(source)) => {
+                    return Err(validation(
+                        path,
+                        text,
+                        pattern_span,
+                        format!("pattern: {source}"),
+                    ));
+                }
+                Err(PatternError::ReservedCapture { name }) => {
+                    return Err(validation(
+                        path,
+                        text,
+                        pattern_span,
+                        format!("pattern: `{name}` is a reserved capture name"),
+                    ));
+                }
+                Err(PatternError::Template { field, message }) => {
+                    let span = if field == "summary" {
+                        summary_span
+                    } else {
+                        body_span.unwrap_or(0..0)
+                    };
+                    return Err(validation(path, text, span, format!("{field}: {message}")));
+                }
+            };
             let urgency = raw_source
                 .urgency
                 .map_or(Urgency::Normal, Spanned::into_inner);
@@ -205,9 +242,10 @@ impl Config {
 
             sources.push(Source {
                 path: PathBuf::from(source_path),
-                pattern,
-                summary,
-                body,
+                pattern: pattern_text,
+                summary: summary_text,
+                body: body_text,
+                compiled,
                 urgency,
                 cooldown_secs,
                 queue_capacity,

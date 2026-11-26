@@ -228,6 +228,52 @@ fn reports_toml_syntax_error_with_location() {
 }
 
 #[test]
+fn rejects_invalid_regex_at_config_load() {
+    let text = r#"
+[[source]]
+path = "/var/log/a.log"
+pattern = "("
+summary = "s"
+"#;
+    let err = Config::parse(Path::new("test.toml"), text).expect_err("invalid regex");
+
+    assert!(matches!(err, ConfigError::Validation { .. }));
+    let message = format!("{err}");
+    assert!(message.contains(":4:"), "{message}");
+    assert!(message.contains("pattern"), "{message}");
+}
+
+#[test]
+fn rejects_unknown_template_placeholder_at_config_load() {
+    let text = r#"
+[[source]]
+path = "/var/log/a.log"
+pattern = "x"
+summary = "{missing}"
+"#;
+    let err = Config::parse(Path::new("test.toml"), text).expect_err("unknown placeholder");
+
+    assert!(matches!(err, ConfigError::Validation { .. }));
+    let message = format!("{err}");
+    assert!(message.contains(":5:"), "{message}");
+    assert!(message.contains("unknown placeholder"), "{message}");
+}
+
+#[test]
+fn rejects_reserved_line_capture_at_config_load() {
+    let text = r#"
+[[source]]
+path = "/var/log/a.log"
+pattern = '(?P<line>\w+)'
+summary = "s"
+"#;
+    let err = Config::parse(Path::new("test.toml"), text).expect_err("reserved capture");
+
+    assert!(matches!(err, ConfigError::Validation { .. }));
+    assert!(format!("{err}").contains("reserved capture"));
+}
+
+#[test]
 fn default_paths_start_with_system_config() {
     let paths = default_paths();
 

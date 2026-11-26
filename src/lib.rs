@@ -8,6 +8,7 @@
 pub mod config;
 pub mod cooldown;
 pub mod notify;
+pub mod pattern;
 pub mod tail;
 
 /// Crate version from Cargo metadata.

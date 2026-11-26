@@ -106,17 +106,17 @@ and named captures into `summary` and `body`. Invalid regex and unknown
 placeholder errors must point at the source.
 
 **Acceptance criteria:**
-- [ ] Regex compilation happens once at startup, not per line.
-- [ ] `{line}` inserts the full matched line.
-- [ ] Named capture groups are available as `{name}`.
-- [ ] Unknown placeholders are rejected at config load.
-- [ ] Literal braces are handled without panics or silent corruption.
-- [ ] A line with no match produces no event and no allocation-heavy work.
+- [x] Regex compilation happens once at startup, not per line.
+- [x] `{line}` inserts the full matched line.
+- [x] Named capture groups are available as `{name}`.
+- [x] Unknown placeholders are rejected at config load.
+- [x] Literal braces are handled without panics or silent corruption.
+- [x] A line with no match produces no event and no allocation-heavy work.
 
 **Verification:**
-- [ ] Unit tests for `{line}`, one named capture, multiple captures, unknown
+- [x] Unit tests for `{line}`, one named capture, multiple captures, unknown
       placeholder, invalid regex, and literal braces.
-- [ ] `cargo test pattern`
+- [x] `cargo test pattern`
 
 **Dependencies:** Task 3.
 
@@ -125,7 +125,7 @@ placeholder errors must point at the source.
 **Estimated scope:** Medium (3 files).
 
 **Checkpoint: Config**
-- [x] All config tests pass; pattern tests arrive in T4.
+- [x] All config and pattern tests pass.
 - [x] Invalid config never starts the daemon.
 - [ ] Review with the human before tail work.
 
