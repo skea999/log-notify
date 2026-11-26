@@ -10,6 +10,14 @@
 - No notification replay/re-emission after login.
 - Language: **Rust** (memory-safe daemon; binary weight is tiny — inotify-driven, no polling, few MB RSS).
 
+**v0.1 refinements (2026-11-26, see `docs/decisions/0008-bounded-notification-queue.md`)**:
+- zbus 6.5 async API driven by `zbus::block_on` in a dedicated notifier worker.
+- Bounded in-memory per-source notification queue: default 10, maximum 100.
+- Transient D-Bus failures retry 3 times with 1/2/4 s backoff and a 5 s method timeout.
+- Undeliverable and overflow events are written to a dropped-event log, default
+  `/var/log/log-notify.log`, with stderr fallback.
+- Still no persistence across restart and no replay.
+
 ---
 
 ## 1. Project
@@ -108,6 +116,12 @@ cooldown_secs = 30
 **Source fields** (required unless noted): `path`, `pattern` (Rust `regex` crate syntax, compiled at startup — invalid regex = config error), `summary` (notification title; `{line}` placeholder = matched line, named capture groups available as `{name}`), optional `body`, optional `urgency` (`low|normal|critical`, default `normal`), optional `cooldown_secs` (default 0), optional `enabled` (bool, default true).
 
 **IMPORTANT — patterns are per-deployment**: the shipped default targets FeralOS log paths; verify each pattern against REAL log output before release (the tracee JSON one especially — placeholder). Do not "fix" patterns by guessing.
+
+> **Update 2026-11-26:** the project owner confirmed the supplied default config
+> was validated against the target logs. The daemon stays generic: sources,
+> patterns, templates, urgency, cooldown, and queue capacity are TOML data. Any
+> future mismatch is fixed by editing the config file only, never by adding
+> tool-specific code.
 
 ## 5. Notification backend
 

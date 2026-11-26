@@ -11,16 +11,17 @@ Status: all tasks open. Documentation initialization is done.
 
 **Description:** Create the Rust crate, pin the toolchain, and lay out the
 modules from the spec. Add a `lib.rs` so unit and integration tests can import
-the internals while `main.rs` stays thin. Decide the inotify crate and edition
-here and record the choice in the plan if it is sticky.
+the internals while `main.rs` stays thin. Use Rust edition 2024 and the direct
+`inotify` 0.11.x crate.
 
 **Acceptance criteria:**
 - [ ] `Cargo.toml` defines the `log-notify` binary and library.
 - [ ] `rust-toolchain.toml` pins a stable channel.
+- [ ] Rust edition 2024 is set in `Cargo.toml`.
+- [ ] `inotify` 0.11.x is selected for file events.
 - [ ] `src/main.rs`, `src/lib.rs`, `src/config.rs`, `src/tail.rs`,
       `src/notify.rs`, and `src/cooldown.rs` exist with documented public stubs.
 - [ ] `cargo build` succeeds without warnings.
-- [ ] The inotify crate choice and Rust edition are recorded in `tasks/plan.md`.
 
 **Verification:**
 - [ ] `cargo build`
@@ -72,11 +73,14 @@ validate required values, and produce precise errors with file, line, and reason
 Resolve config paths in the documented order. Empty source sets are errors.
 
 **Acceptance criteria:**
-- [ ] `[general]` supports `line_cap_bytes` with default 8192.
+- [ ] `[general]` supports `line_cap_bytes` with default 8192 and `dropped_log`
+      with default `/var/log/log-notify.log`.
 - [ ] `[[source]]` supports `path`, `pattern`, `summary`, `body`, `urgency`,
-      `cooldown_secs`, and `enabled` with the documented defaults.
-- [ ] Unknown fields, missing required fields, bad urgency, and zero sources are
-      rejected with a clear message.
+      `cooldown_secs`, `queue_capacity`, and `enabled` with the documented
+      defaults.
+- [ ] `queue_capacity` is validated to `1..=100`; default is 10.
+- [ ] Unknown fields, missing required fields, bad urgency, bad queue capacity,
+      and zero sources are rejected with a clear message.
 - [ ] Semantic errors report the config file, line/column where available, and
       reason; use `toml::Spanned` or equivalent span data.
 - [ ] Missing config file reports every attempted path.
@@ -85,7 +89,7 @@ Resolve config paths in the documented order. Empty source sets are errors.
 
 **Verification:**
 - [ ] Unit tests for valid config, unknown field, missing required field, bad
-      urgency, empty sources, and missing file.
+      urgency, bad queue capacity, empty sources, and missing file.
 - [ ] `cargo test config`
 
 **Dependencies:** Task 1.
@@ -131,7 +135,8 @@ placeholder errors must point at the source.
 
 **Description:** Implement the per-source state and read path: open at end of
 file, read new bytes, buffer the trailing partial line, cap long lines, and emit
-complete lines in order.
+complete lines in order. Non-UTF-8 bytes use lossy conversion. An over-cap line
+keeps the capped prefix, discards the rest until the newline, and matches once.
 
 **Acceptance criteria:**
 - [ ] Initial offset equals the current file size; existing content is not read.
@@ -156,11 +161,14 @@ complete lines in order.
 ### Task 6: inotify watch and event loop
 
 **Description:** Watch each source with inotify and drive reads from events. Map
-watch descriptors to sources, handle read races, and avoid polling.
+watch descriptors to sources, handle read races, watch the nearest existing
+parent for a missing source, and avoid polling.
 
 **Acceptance criteria:**
-- [ ] Each enabled source has a watch on its path.
-- [ ] `MODIFY`, `CLOSE_WRITE`, and `CREATE` trigger a read.
+- [ ] Each enabled source has a watch on its path, or on its nearest existing
+      parent when the path is missing.
+- [ ] `MODIFY`, `CLOSE_WRITE`, and `CREATE` trigger a read or reopen.
+- [ ] A source created after startup is opened at its current end.
 - [ ] Events that do not advance the offset are ignored.
 - [ ] No busy loop and no timer tick when idle.
 - [ ] A failed watch is logged with the path and reason; other sources continue.
@@ -212,8 +220,8 @@ current end. Handle delete and recreate without crashing.
 ### Task 8: Per-source cooldown
 
 **Description:** Add a per-source monotonic cooldown. After a successful
-notification, suppress further matches from that source for the configured
-window. Use an injectable clock so tests do not sleep.
+enqueue, suppress further matches from that source for the configured window.
+Use an injectable clock so tests do not sleep.
 
 **Acceptance criteria:**
 - [ ] Default cooldown is 0 (disabled).
@@ -234,38 +242,48 @@ window. Use an injectable clock so tests do not sleep.
 
 **Estimated scope:** Small (3 files).
 
-### Task 9: Notifier trait, dry-run, zbus backend
+### Task 9: Bounded queue, notifier worker, zbus backend, dropped log
 
-**Description:** Define a notifier abstraction, implement the dry-run writer, and
-implement the zbus 5.x blocking backend. Map urgency and expiry, and handle a
-missing daemon without retry loops. `replaces_id` is 0 in v0.1.
+**Description:** Implement the notification pipeline: a bounded per-source queue,
+a dedicated worker thread, the zbus 6.5 backend driven by `zbus::block_on`, a 5 s
+method timeout, bounded retries, and the dropped-event log. The main loop must
+never call D-Bus. `replaces_id` is 0 in v0.1.
 
 **Acceptance criteria:**
-- [ ] The notifier trait accepts app name, summary, body, urgency, and expiry.
-- [ ] `--dry-run` prints a stable event line to stdout and never touches D-Bus.
-- [ ] zbus calls `org.freedesktop.Notifications.Notify` with the documented
-      arguments and urgency hint.
+- [ ] The queue enforces `queue_capacity` per source (`1..=100`, default 10).
+- [ ] Overflow drops the oldest event of that source and logs it with reason
+      `queue_full`.
+- [ ] The main loop enqueues and never blocks on D-Bus.
+- [ ] The worker calls `org.freedesktop.Notifications.Notify` through zbus 6.5
+      with the documented arguments and urgency hint.
 - [ ] `low`/`normal` use `expire_timeout = -1`; `critical` uses `0`.
-- [ ] No session bus or no service logs one stderr line and returns an error the
-      daemon handles by dropping the event.
-- [ ] Connection loss does not cause a tight retry loop.
-- [ ] Unit tests use a fake notifier; no D-Bus required.
+- [ ] `ConnectionBuilder::method_timeout` is 5 seconds.
+- [ ] Transient failures retry 3 times with 1/2/4 s backoff; missing service or
+      exhausted retries drop and log with reason `no_service` or `notify_failed`.
+- [ ] `general.dropped_log` defaults to `/var/log/log-notify.log`; if unwritable,
+      warn once and fall back to stderr.
+- [ ] `--dry-run` prints a stable event line to stdout, starts no worker, and
+      never touches D-Bus.
+- [ ] Unit tests use a fake notifier and fake clock; no D-Bus required.
 
 **Verification:**
 - [ ] `cargo test notify`
+- [ ] `cargo test queue`
 - [ ] `log-notify --dry-run` against a fixture prints the expected event.
 - [ ] Manual live test with a running notification daemon.
+- [ ] Fault test with a failing notifier: drops logged, tailing continues.
 
-**Dependencies:** Task 4, Task 1.
+**Dependencies:** Task 4, Task 8, Task 1.
 
 **Files likely touched:** `src/notify.rs`, `src/lib.rs`, `tests/notify.rs`,
-`Cargo.toml`.
+`tests/queue.rs`, `Cargo.toml`.
 
-**Estimated scope:** Medium (4 files).
+**Estimated scope:** Medium (5 files).
 
 **Checkpoint: Notifications**
-- [ ] Cooldown and notifier tests pass.
+- [ ] Cooldown, queue, worker, and dropped-log tests pass.
 - [ ] Dry-run and fake notifier paths are deterministic.
+- [ ] A failing notifier does not stall the main loop.
 - [ ] Review with the human before wiring the daemon.
 
 ## Phase 5: Daemon wiring and proof
@@ -273,16 +291,19 @@ missing daemon without retry loops. `replaces_id` is 0 in v0.1.
 ### Task 10: CLI, config path resolution, lifecycle
 
 **Description:** Wire the daemon: parse CLI flags, resolve config, validate,
-open sources, run the event loop, and implement `--once`, `--verbose`, and
-`--version`. Ensure startup errors exit non-zero with precise messages.
+open sources, start the notifier worker, run the event loop, and implement
+`--once`, `--verbose`, and `--version`. Ensure startup errors exit non-zero with
+precise messages.
 
 **Acceptance criteria:**
 - [ ] `--config`, `--dry-run`, `--once`, `--verbose`, and `--version` work.
 - [ ] Unknown flags exit non-zero with usage.
 - [ ] Config errors print file, line, and reason and exit non-zero.
-- [ ] `--once` exits after the first emitted event.
+- [ ] `--once` exits after the first regex match; normal mode waits for the
+      worker's delivery or drop outcome before exit.
 - [ ] `--verbose` adds tail-debug lines; normal mode logs one line per event.
-- [ ] Startup and shutdown leave no orphan watchers.
+- [ ] Startup and shutdown leave no orphan watchers or worker threads.
+- [ ] Startup opens the dropped-event log with stderr fallback.
 
 **Verification:**
 - [ ] Integration tests for each flag.
@@ -303,9 +324,10 @@ SIGHUP is ignored in v0.1.
 **Acceptance criteria:**
 - [ ] A second instance exits non-zero with a clear message.
 - [ ] The lock is released on clean exit and on SIGTERM/SIGINT.
-- [ ] SIGTERM and SIGINT close watchers and exit 0.
+- [ ] SIGTERM and SIGINT close watchers, wake the worker, and exit 0.
 - [ ] SIGHUP does not reload; it is logged and ignored.
-- [ ] `$XDG_RUNTIME_DIR` fallback behavior is decided and tested or documented.
+- [ ] `$XDG_RUNTIME_DIR` unset falls back to `/run/user/<uid>` if present, else
+      exits with a clear error.
 
 **Verification:**
 - [ ] Integration test starts two instances; the second fails.
@@ -322,14 +344,16 @@ SIGHUP is ignored in v0.1.
 ### Task 12: Fixture integration tests
 
 **Description:** Build end-to-end tests with fixture logs: append lines, run the
-daemon with `--dry-run`, assert stdout events, exercise cooldown, rotation, and
-`--once`. Cover the spec §7 minimum bar.
+daemon with `--dry-run`, assert stdout events, exercise cooldown, rotation,
+queue overflow, retry/drop logging, and `--once`. Cover the spec §7 minimum bar.
 
 **Acceptance criteria:**
 - [ ] Pattern engine: named captures, placeholder substitution, invalid regex.
 - [ ] Tail: append, partial, copytruncate, inode replacement, 64 KiB line.
 - [ ] Cooldown: suppressed inside window, emitted after.
-- [ ] Config: missing file, bad TOML, bad regex, empty sources.
+- [ ] Queue: per-source capacity, oldest drop, dropped-event log line.
+- [ ] Notifier: transient retry, terminal drop, stderr fallback.
+- [ ] Config: missing file, bad TOML, bad regex, bad queue capacity, empty sources.
 - [ ] Integration: fixture append produces the correct stdout event.
 - [ ] Tests do not read real system logs and do not need D-Bus.
 
@@ -343,17 +367,21 @@ daemon with `--dry-run`, assert stdout events, exercise cooldown, rotation, and
 
 **Estimated scope:** Medium (3-5 files).
 
-### Task 13: Default config and pattern verification
+### Task 13: Default config and config-only behavior
 
 **Description:** Add `config/log-notify.toml` with the FeralOS security-stack
-sources from the spec. Verify every pattern against real log output where
-available. The tracee pattern stays flagged until verified; do not guess.
+sources from the spec, plus `dropped_log` and `queue_capacity` defaults. The
+supplied pattern set was validated against the target logs. The daemon must stay
+generic: sources, patterns, templates, urgency, cooldown, and queue capacity are
+data. Adding or removing a source requires only a TOML edit, never a code change.
 
 **Acceptance criteria:**
 - [ ] Config matches the spec's source set and defaults.
-- [ ] `line_cap_bytes = 8192` is present.
-- [ ] Each pattern is tested against a representative real or fixture line.
-- [ ] Tracee has a clear TODO and is listed as a release blocker if unverified.
+- [ ] `line_cap_bytes = 8192`, `dropped_log`, and `queue_capacity = 10` are
+      present or documented as defaults.
+- [ ] Each supplied pattern is tested against a representative fixture line.
+- [ ] No tool name, log path, or pattern is hardcoded in Rust.
+- [ ] Adding and removing a source works by editing only the TOML.
 - [ ] A README command loads the shipped config successfully.
 
 **Verification:**
@@ -396,5 +424,6 @@ gates as CI.
 - [ ] Manual fixture run matches expected events.
 - [ ] README commands work from a clean checkout.
 - [ ] Release artifact exists.
-- [ ] Tracee verification status is explicit.
+- [ ] Queue overflow and failed delivery drops are logged.
+- [ ] Adding or removing a source needs only a TOML edit.
 - [ ] Human review and approval before tagging v0.1.0.

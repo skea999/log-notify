@@ -51,6 +51,32 @@ Per-source suppression window after a notification. Further matches from the
 same source are ignored until the window expires. `0` disables suppression.
 _Avoid_: rate limit, throttle, debounce
 
+**Notification queue**
+Bounded in-memory queue between the main loop and the notifier worker. Each
+source has its own capacity; the worker drains in FIFO order.
+_Avoid_: buffer, backlog
+
+**Queue capacity**
+Maximum pending notifications per source: `10` by default, `1..=100` allowed.
+When full, the oldest event for that source is dropped and logged.
+_Avoid_: backlog size, buffer length
+
+**Dropped event**
+A notification that could not be delivered or queued. It is written to the
+dropped-event log with a reason: `queue_full`, `notify_failed`, or `no_service`.
+_Avoid_: lost notification, discard
+
+**Dropped-event log**
+File configured by `general.dropped_log`, default `/var/log/log-notify.log`. If
+unwritable, the daemon falls back to stderr after one warning.
+_Avoid_: error log, dead-letter file
+
+**Notifier worker**
+Dedicated thread that owns the zbus 6.5 connection and sends notifications. The
+main loop never calls D-Bus, so a slow or hung notification daemon cannot stop
+log tailing.
+_Avoid_: sender, dispatcher
+
 **Urgency**
 Notification importance: `low`, `normal`, or `critical`. Maps to the freedesktop
 urgency hint (`0`, `1`, `2`). Critical notifications never expire.

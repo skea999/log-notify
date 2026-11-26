@@ -18,11 +18,11 @@ Implementation plan: [`tasks/plan.md`](../tasks/plan.md).
 - [ ] T6 — inotify watch and event loop
 - [ ] T7 — Rotation and inode handling
 - [ ] T8 — Per-source cooldown
-- [ ] T9 — Notifier trait, dry-run, zbus backend
+- [ ] T9 — Bounded queue, notifier worker, zbus backend, dropped log
 - [ ] T10 — CLI, config path resolution, lifecycle
 - [ ] T11 — Lockfile and signal handling
 - [ ] T12 — Fixture integration tests
-- [ ] T13 — Default config and pattern verification
+- [ ] T13 — Default config and config-only behavior
 - [ ] T14 — Release CI and musl artifact
 
 ### In Progress
@@ -43,9 +43,9 @@ None.
 
 | Issue | Status | Workaround |
 |-------|--------|------------|
-| Tracee pattern in default config is unverified | Open | Validate against real tracee JSON before release; do not guess |
 | Session-memory scripts fail on this host with Nix libc relocation errors | Open | Use context-mode `ctx_*` tools and `state/session-state.json` |
-| No GitHub remote or CI workflow yet | Open | Create remote, push, run CI after T2 |
+| CI workflow does not exist yet | Open | Create it in T2, then run on the pushed branch |
+| `/var/log/log-notify.log` may not be writable by a user service | Open | Daemon warns once and falls back to stderr; service unit can grant access or set `general.dropped_log` |
 
 ---
 

@@ -1,4 +1,4 @@
-# ADR-0004: zbus notification backend
+# ADR-0004: zbus 6.5 notification backend
 
 ## Status
 
@@ -8,37 +8,48 @@ Accepted — 2026-11-26. Deciders: project owner, implementation agent.
 
 Notifications must reach any freedesktop notification daemon on Wayland or X11.
 The source spec recommends zbus, a pure-Rust D-Bus client with no libdbus C
-dependency, and allows `notify-send` as a lighter alternative. zbus 6 removed the
-blocking API, so the version choice affects the daemon's concurrency model.
+dependency. The current stable release is zbus 6.5. zbus 6 removed the 5.x
+blocking API, but provides `zbus::block_on` to drive the async API from
+synchronous code.
+
+Reliability is the priority. A hung or slow D-Bus call must not stop log tailing.
+A dedicated notifier worker isolates the D-Bus call from the inotify loop.
 
 ## Decision
 
-We will use `zbus` 5.x with its blocking API for v0.1. The call targets
-`org.freedesktop.Notifications.Notify` with `app_name = "log-notify"`,
-`replaces_id = 0` in v0.1, an urgency hint (`low = 0`, `normal = 1`,
-`critical = 2`), and `expire_timeout = -1` for low/normal and `0` for critical.
+We will use zbus 6.5.x with its async API inside a dedicated notifier worker
+thread. The worker drives each notification future with `zbus::block_on`; there
+is no async runtime in the daemon.
 
-Notification failures are logged to stderr and the event is dropped. The daemon
-keeps tailing. There is no retry loop. A notifier trait isolates D-Bus from
-tests; `--dry-run` is a separate implementation that prints to stdout.
+- Call `org.freedesktop.Notifications.Notify` with `app_name = "log-notify"`.
+- `replaces_id = 0` in v0.1; per-source reuse is v0.2 polish.
+- `urgency` hint: `low = 0`, `normal = 1`, `critical = 2`.
+- `expire_timeout`: `-1` for low/normal; `0` for critical (never expire).
+- Set `ConnectionBuilder::method_timeout` to 5 seconds so a missing reply cannot
+  hang the worker forever.
+- The notifier trait keeps D-Bus out of tests; `--dry-run` never touches D-Bus.
+
+Queueing, retry policy, and dropped-event logging are ADR-0008.
 
 ## Options
 
-- **zbus 5.x blocking** — Selected. Pure Rust, no C dependency, fits the
-  synchronous event loop, full control over hints and expiry.
-- **zbus 6.x async** — Rejected for v0.1. Requires an async runtime or a
-  blocking bridge; more complexity than the workload needs.
-- **`notify-send` subprocess** — Rejected. One process per event, less control
-  over urgency hints and expiry, and parsing failures are harder to handle.
+- **zbus 6.5 async API + `block_on` in a worker** — Selected. Current release,
+  no async runtime, D-Bus isolated from tailing.
+- **zbus 5.x blocking API** — Rejected. Older major and known upgrade debt; its
+  blocking API is gone in 6.x.
+- **Full async daemon** — Rejected. Adds tokio or async-io, async inotify, async
+  shutdown, and async tests without a notification-latency gain.
+- **`notify-send` subprocess** — Rejected. One process per event and less control
+  over hints, expiry, and failure handling.
 - **libnotify through FFI** — Rejected. Adds a C dependency and unsafe boundary.
 
 ## Consequences
 
-- The dependency tree is larger than a subprocess call, but the binary remains
-  self-contained.
-- zbus 5.x must be pinned. Upgrading to 6.x requires an async refactor or a
-  backend replacement; track this in the roadmap.
-- A local D-Bus call can block briefly; if it becomes a tailing problem, move
-  notifications to a worker thread.
-- `replaces_id = 0` means bursts can stack windows until v0.2 adds per-source
-  reuse. Cooldown limits the burst size.
+- No async runtime is added; the worker blocks only itself on zbus.
+- A slow or hung notification daemon cannot stop log tailing. The queue bounds
+  memory and overflow is logged.
+- `zbus::block_on` is a bridge, not the removed blocking API. The zbus async API
+  remains the integration point.
+- The worker may retry a call whose reply was lost; a duplicate notification is
+  possible. For a security notifier, duplicate is preferable to silent loss.
+- zbus 6.5 is the latest stable major. Upgrades stay within the async API.

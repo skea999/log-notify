@@ -8,39 +8,47 @@ Task list: [`todo.md`](todo.md)
 
 Build a single-binary Rust daemon that tails configured log files with inotify,
 matches one regex per source, applies a per-source cooldown, and sends
-freedesktop notifications through D-Bus. Start every source at end of file, never
-replay history, survive rotation, and keep tailing when no notification service
-exists. v0.1 ends with tested code, a shipped default config, containerized CI,
-and a release build.
+freedesktop notifications through D-Bus. Start every source at end of file,
+never replay history, survive rotation, and keep tailing when no notification
+service exists.
+
+Reliability is the priority. The main loop never calls D-Bus. A dedicated
+notifier worker drains a small bounded per-source queue, retries transient
+failures, and writes undeliverable events to a dropped-event log.
 
 Documentation initialization is complete. No Rust code exists yet.
 
 ## Architecture Decisions
 
 - [ADR-0002](../docs/decisions/0002-rust-single-binary-daemon.md): Rust stable,
-  single binary, synchronous single-threaded event loop, Linux only.
+  edition 2024, single binary, synchronous main loop, Linux only.
 - [ADR-0003](../docs/decisions/0003-read-only-log-relay.md): read logs only, no
   native hooks, no replay or persistence.
-- [ADR-0004](../docs/decisions/0004-zbus-notification-backend.md): zbus 5.x
-  blocking API; urgency mapping; drop and log on failure.
+- [ADR-0004](../docs/decisions/0004-zbus-notification-backend.md): zbus 6.5
+  async API driven by `zbus::block_on` in a dedicated worker; 5 s method
+  timeout; urgency mapping.
 - [ADR-0005](../docs/decisions/0005-toml-config-fail-loud.md): TOML with serde;
-  validate schema, regexes, and templates at startup; fail loud.
+  validate schema, regexes, queue capacities, and templates at startup; fail
+  loud.
 - [ADR-0006](../docs/decisions/0006-keep-isc-license.md): ISC license.
 - [ADR-0007](../docs/decisions/0007-defer-sighup-reload.md): SIGHUP reload in
   v0.2; v0.1 requires restart.
+- [ADR-0008](../docs/decisions/0008-bounded-notification-queue.md): bounded
+  in-memory per-source queue, dropped-event log, bounded retries.
 
 Proposed dependency set, to confirm at scaffold time with Context7 and
 `cargo tree`:
 
 | Purpose | Crate | Notes |
 |---------|-------|-------|
-| CLI | `clap` derive | Version, help, flags. |
-| Config | `serde`, `toml` | Reject unknown fields; use `toml::Spanned` for line/column in semantic errors. |
-| Matching | `regex` | Linear-time engine; compile at startup. |
-| File events | `inotify` or `notify` | Direct `inotify` is smaller; `notify` handles watcher edge cases. Decide in T1. |
-| D-Bus | `zbus` 5.x, `blocking-api` | Pin major 5; see ADR-0004. |
-| Signals | `signal-hook` | SIGTERM, SIGINT; SIGHUP ignored. |
-| Lock | `fs2` or `rustix` | Advisory lock on the runtime path. |
+| CLI | `clap` 4.x derive | Version, help, flags. |
+| Config | `serde`, `toml` 1.x | Reject unknown fields; use `toml::Spanned` for line/column in semantic errors. |
+| Matching | `regex` 1.x | Linear-time engine; compile at startup. |
+| File events | `inotify` 0.11.x | Direct, Linux-only, precise control. |
+| D-Bus | `zbus` 6.5.x | Async API; `zbus::block_on` in the worker; `method_timeout`. |
+| Signals | `signal-hook` 0.4.x | SIGTERM, SIGINT; SIGHUP ignored. |
+| Lock | `rustix` | Advisory `flock` on the runtime path. |
+| Timestamps | `time` | Dropped-event log timestamps. |
 | Errors | `anyhow` or `thiserror` | Typed config errors with file/line context. |
 
 No async runtime. No network dependency.
@@ -62,7 +70,7 @@ No async runtime. No network dependency.
 - [ ] T4: Pattern and template engine
 
 **Checkpoint: Config**
-- [ ] Invalid TOML, missing fields, bad regex, and empty sources fail with precise errors
+- [ ] Invalid TOML, missing fields, bad regex, bad queue capacity, and empty sources fail with precise errors
 - [ ] Named captures and `{line}` substitution are tested
 
 ### Phase 3: Tail engine
@@ -74,19 +82,21 @@ No async runtime. No network dependency.
 **Checkpoint: Tail**
 - [ ] Append emits exactly one event per complete line
 - [ ] Partial line is buffered
-- [ ] 64 KiB line is capped without panic
+- [ ] 64 KiB line is capped to one event without panic
 - [ ] copytruncate resets and reads new content
 - [ ] inode replacement reopens at end
 
-### Phase 4: Cooldown and notifications
+### Phase 4: Cooldown, queue, notifications
 
 - [ ] T8: Per-source cooldown
-- [ ] T9: Notifier trait, dry-run, zbus backend
+- [ ] T9: Bounded queue, notifier worker, zbus backend, dropped log
 
 **Checkpoint: Notifications**
 - [ ] Second match inside the window is suppressed
-- [ ] Match after the window is emitted
-- [ ] Missing daemon logs once and tailing continues
+- [ ] Match after the window is enqueued
+- [ ] Queue overflow drops the oldest event of that source and logs it
+- [ ] Transient D-Bus failure retries, then logs a drop
+- [ ] Missing daemon logs once per dropped event and tailing continues
 - [ ] `--dry-run` never touches D-Bus
 
 ### Phase 5: Daemon wiring and proof
@@ -94,7 +104,7 @@ No async runtime. No network dependency.
 - [ ] T10: CLI, config path resolution, lifecycle
 - [ ] T11: Lockfile and signal handling
 - [ ] T12: Fixture integration tests
-- [ ] T13: Default config and pattern verification
+- [ ] T13: Default config and config-only behavior
 - [ ] T14: Release CI and musl artifact
 
 **Checkpoint: v0.1 complete**
@@ -102,13 +112,13 @@ No async runtime. No network dependency.
 - [ ] Manual `--dry-run` against fixture logs produces the expected events
 - [ ] README commands work from a clean checkout
 - [ ] Release workflow produces a binary artifact
-- [ ] Tracee pattern verified against real output or explicitly flagged as unresolved
+- [ ] Default config loads; adding or removing a source needs only a TOML edit
 
 ## Parallelization
 
 - After T1: T3 and T5 can run in parallel; T8 can also start.
 - T4 depends on T3; T6 depends on T5; T7 depends on T6.
-- T9 depends on T4 (templates) and T1.
+- T9 depends on T4 and T8.
 - T10 depends on T3, T7, and T9.
 - T12 and T13 depend on T10 and T9.
 - T14 depends on T12.
@@ -117,35 +127,53 @@ No async runtime. No network dependency.
 
 | Risk | Impact | Mitigation |
 |------|--------|------------|
-| Tracee pattern is a placeholder | High | Treat as release blocker; collect real tracee JSON and verify before release |
-| Missing or unreadable sources | High | Decide policy in T3/T5; fail loud on permissions, warn and watch on absence |
-| inotify edge cases on rename and delete | High | Test copytruncate, rename, delete/recreate, and inode replacement explicitly |
-| Non-UTF-8 log content | Medium | Lossy conversion; fixture test with invalid bytes |
-| zbus 5 blocking API availability | Medium | Confirm at T1; if unavailable, choose zbus 6 with a minimal async bridge or `notify-send` and update ADR-0004 |
-| Notification call blocks tailing | Low | Local call; move to a worker thread only if measured |
-| CI policy conflict | Medium | Run the GitHub Actions job inside a Rust container to satisfy the container-only rule |
-| No remote repository | High | Create the remote before T2 so CI can be validated |
+| Queue overflow under burst or slow daemon | Medium | Bounded per-source queue, drop oldest, log every drop |
+| Restart loses pending events | Medium | Documented; no persistence by design |
+| Retry duplicates a notification | Low | Accept duplicate over silent loss |
+| Dropped log not writable | Medium | One warning, stderr fallback |
+| Missing or unreadable sources | High | Warn and watch parent for missing; fail loud on permissions |
+| inotify edge cases on rename and delete | High | Test copytruncate, rename, delete/recreate, inode replacement |
+| Non-UTF-8 log content | Medium | Lossy conversion; fixture test |
+| zbus 6.5 API changes | Low | Pin minor version; async API + `block_on` is the boundary |
+| Notification call blocks worker | Medium | 5 s method timeout, bounded retries, bounded queue |
+| CI policy conflict | Medium | Run the GitHub Actions job inside a Rust container |
 | Default config paths absent on dev hosts | Medium | Use fixture paths for tests; never point tests at system logs |
 
-## Open Questions
+## Resolved Decisions
 
-1. **Missing source at startup.** Proposed: log a warning, watch for creation,
-   and continue. Unreadable file due to permissions: exit non-zero. Confirm.
-2. **Non-UTF-8 lines.** Proposed: `String::from_utf8_lossy` per line before
-   regex matching. Confirm replacement-character behavior is acceptable.
-3. **`$XDG_RUNTIME_DIR` unset.** Proposed: fall back to `/run/user/<uid>` when
-   it exists, else exit with a clear error. Confirm.
-4. **inotify crate choice.** Direct `inotify` for a smaller tree, or `notify`
-   for higher-level watcher handling. Decide in T1 and record if sticky.
-5. **Rust edition and MSRV.** Proposed: edition 2021 and a pinned stable
-   toolchain for broad packaging compatibility. Confirm at T1.
-6. **`--once` and cooldown.** Proposed: exit on the first event that would be
-   emitted; cooldown starts empty at process start, so this is the first match.
-   Confirm.
-7. **Tracee pattern owner.** Who provides real tracee JSON for verification?
-   Until then, the pattern is a release blocker.
-8. **GitHub remote and owner.** Needed before CI validation and release badges.
-9. **Default config installation path.** Confirm `/etc/log-notify/log-notify.toml`
-   for FeralOS and `~/.config/log-notify/log-notify.toml` for user installs.
-10. **`replaces_id` reuse.** Deferred to v0.2 per roadmap; confirm that burst
-    stacking is acceptable for v0.1.
+All v0.1 behavior questions are closed:
+
+1. **Missing source at startup.** Warn, watch the nearest existing parent for
+   creation, continue. Permission denied is fatal.
+2. **Non-UTF-8 lines.** `String::from_utf8_lossy` per line; no panic.
+3. **`$XDG_RUNTIME_DIR` unset.** Use `/run/user/<uid>` if present, else exit
+   with a clear error.
+4. **File event crate.** Direct `inotify` 0.11.x.
+5. **Rust edition and MSRV.** Edition 2024, stable pinned via
+   `rust-toolchain.toml`, no MSRV promise for v0.1.
+6. **`--once`.** Exit after the first regex match is processed. Normal mode
+   waits for the worker's delivery or drop outcome before exiting.
+7. **Default config paths.** `/etc/log-notify/log-notify.toml`, then
+   `~/.config/log-notify/log-notify.toml`.
+8. **`replaces_id`.** `0` in v0.1; per-source reuse in v0.2.
+9. **Notification guarantee.** In-memory bounded per-source queue, default 10,
+   maximum 100. No persistence. Dropped events go to
+   `/var/log/log-notify.log` by default, with stderr fallback.
+10. **Retry policy.** 3 attempts, 1/2/4 s backoff, 5 s method timeout. Missing
+    service or exhausted retries: drop and log.
+11. **Default config coupling.** None. Patterns, sources, templates, urgency,
+    cooldown, and queue capacity are TOML data. Future log-format changes are
+    config-only edits.
+12. **Repository remote.** Public `skea999/log-notify`; first push done.
+
+## Spec Deltas
+
+These refine the source spec and are recorded in ADR-0008:
+
+- The source spec says a missing notification daemon drops the event. v0.1
+  retries transient failures first, then drops and writes the event to the
+  dropped-event log.
+- The source spec logs to stderr only. v0.1 adds a configurable dropped-event
+  log for undeliverable and overflow events.
+- The source spec has no queue. v0.1 adds a bounded in-memory per-source queue,
+  default 10, maximum 100. There is still no persistence or replay.

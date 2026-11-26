@@ -5,14 +5,17 @@ All notable changes to this project are documented in this file (Keep a Changelo
 ## [Unreleased] — 2026-11-26
 ### Added
 - Project initialization for `log-notify`: README with CLI and config reference, project context, domain vocabulary, architecture, roadmap, project brief, implementation plan, and ordered task list.
-- ADRs 0001–0007: ADR process, Rust daemon, read-only log relay, zbus backend, TOML fail-loud config, ISC license, and SIGHUP reload deferred to v0.2.
+- ADRs 0001–0008: ADR process, Rust daemon, read-only log relay, zbus 6.5 backend, TOML fail-loud config, ISC license, SIGHUP reload deferred to v0.2, and bounded notification queue.
 - `state/session-state.json` now tracks log-notify goals, decisions, risks, and next actions.
 ### Changed
 - Replaced skea-store template content in `AGENTS.md`, `CONTEXT.md`, `ROADMAP.md`, `docs/PROJECT.md`, and `docs/TASKS.md`.
+- Resolved v0.1 behavior decisions: missing-source warning/watch, lossy UTF-8, XDG fallback, direct inotify 0.11.x, edition 2024, first-match `--once`, config paths, `replaces_id` deferral, and generic config-only sources.
+- Switched notification delivery to zbus 6.5 with a dedicated worker, bounded per-source queue (default 10, max 100), 3 retries with 1/2/4 s backoff, 5 s method timeout, and dropped-event log at `/var/log/log-notify.log` with stderr fallback.
 - Recorded the documentation-only initialization scope: no Rust code, Cargo scaffold, or CI workflow yet.
 ### Notes
 - License decision: ISC, copyright skea999 (user choice 2026-11-26).
-- The tracee pattern in the shipped default config remains an unverified placeholder; it is a release blocker.
+- Default config is validated data; changing sources or patterns needs only a TOML edit.
+- Public remote created: `https://github.com/skea999/log-notify`; first documentation commit pushed.
 - Template harness files (`package.json`, `.opencode/`, `.agents/`, `scripts/`, `references/`) are intentionally kept; project code goes under `src/`.
 
 ## [Unreleased] — 2026-11-25

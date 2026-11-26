@@ -6,8 +6,8 @@
 **Plan**: [`tasks/plan.md`](../tasks/plan.md)
 **Tasks**: [`tasks/todo.md`](../tasks/todo.md)
 
-**Status**: documentation and plan initialized 2026-11-26. No Rust code yet.
-Next step is T1 (Cargo scaffold) after plan approval.
+**Status**: documentation, architecture, and v0.1 decisions complete (2026-11-26).
+No Rust code yet. Next step is T1 (Cargo scaffold).
 
 See `state/session-state.json` for current goals, decisions, risks, and next
 actions. See `CHANGELOG.md` for notable changes. Change logs never go in

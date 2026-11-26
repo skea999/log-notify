@@ -1,36 +1,41 @@
 {
-  "goal": "log-notify v0.1: Rust daemon that tails configured log files, matches per-source regexes, and emits freedesktop notifications through D-Bus.",
+  "goal": "log-notify v0.1: Rust daemon that tails configured log files, matches per-source regexes, and emits freedesktop notifications through D-Bus with reliable bounded delivery.",
   "status": "planned",
   "active_goals": [
-    "Documentation, architecture, ADRs, plan, and task list initialized (2026-11-26).",
+    "Documentation, architecture, ADRs, plan, and task list initialized and decisions resolved (2026-11-26).",
+    "Remote public repo created: https://github.com/skea999/log-notify; main pushed at commit 2a36e45.",
     "v0.1 implementation not started; next step is T1 (Cargo scaffold)."
   ],
   "decisions": [
-    "Rust stable, single binary, Linux only, synchronous single-threaded event loop, inotify-driven with no polling.",
+    "Rust stable, edition 2024, single binary, Linux only, synchronous main loop, inotify-driven with no polling.",
     "Read logs only; no native tool hooks; no replay or persistence; every source starts at end of file.",
+    "Default config is data: sources, patterns, templates, urgency, cooldown, and queue capacity are TOML. No tool-specific code.",
     "TOML config with serde; compile every regex at startup; fail loud with file, line, and reason.",
-    "zbus 5.x blocking API; urgency low/normal/critical = 0/1/2; critical never expires; missing daemon drops event and keeps tailing.",
-    "Per-source cooldown; schema default 0, shipped config uses 60/30/0 values from the spec.",
-    "Line cap default 8192 bytes; partial lines buffered; shrink resets offset; inode change reopens at end.",
-    "License ISC, copyright skea999 (user decision 2026-11-26).",
-    "SIGHUP config reload deferred to v0.2; v0.1 requires restart.",
-    "Documentation-only initialization: no Cargo scaffold, source code, default config file, or CI workflow yet.",
-    "Template harness files (package.json, .opencode/, .agents/, scripts/, references/) are kept; project code goes under src/."
+    "Missing log source at startup: warn, watch nearest existing parent, continue. Permission denied is fatal.",
+    "Main loop never calls D-Bus. Dedicated notifier worker with a bounded per-source queue: default 10, range 1..=100.",
+    "Queue overflow drops the oldest event of that source and logs it. No durable spool; pending events are lost on restart.",
+    "Notification failures retry 3 times with 1/2/4 s backoff and a 5 s zbus method timeout; missing service or exhausted retries drop and log.",
+    "Dropped-event log defaults to /var/log/log-notify.log; if unwritable, warn once and fall back to stderr.",
+    "zbus 6.5 async API driven by zbus::block_on in the worker; no async runtime.",
+    "Non-UTF-8 lines use lossy conversion. Over-cap lines keep the capped prefix, discard the rest, and match once.",
+    "XDG_RUNTIME_DIR unset: use /run/user/<uid> if present, else exit with a clear error.",
+    "--once exits after the first regex match is processed; normal mode waits for delivery or drop outcome. Config paths: /etc/log-notify/log-notify.toml, then ~/.config/log-notify/log-notify.toml.",
+    "License ISC, copyright skea999.",
+    "SIGHUP config reload deferred to v0.2; v0.1 requires restart."
   ],
   "risks": [
-    "Tracee pattern in the shipped default config is an unverified placeholder and a release blocker.",
-    "Missing or unreadable log source behavior is still an open question in tasks/plan.md.",
-    "No GitHub remote yet, so CI and release workflows cannot be validated.",
-    "zbus 6 removed the blocking API; v0.1 pins zbus 5.x and a future upgrade requires an async refactor.",
+    "Queue overflow or permanent notification-service absence drops events; every drop is logged, but delivery is not guaranteed.",
+    "Pending in-memory events are lost on restart by design.",
+    "A retry after an uncertain reply can duplicate a notification. Accepted: duplicate over silent loss.",
+    "/var/log/log-notify.log may not be writable by a user-session service; stderr fallback is implemented.",
+    "No CI workflow yet; create it in T2 and run it on the pushed branch.",
     "Session-memory scripts fail on this host with Nix libc relocation errors; context-mode ctx_* tools and this state file are the working alternative.",
     "Template Node/JS files remain in the repo because the OpenCode harness uses them; they are not the project stack."
   ],
   "next_actions": [
-    "Approve tasks/plan.md and tasks/todo.md.",
-    "Resolve the open questions in tasks/plan.md before tail and notification implementation.",
-    "Start T1: create Cargo scaffold, rust-toolchain.toml, and module skeletons.",
-    "Create the GitHub remote before T2 so containerized CI can be validated.",
-    "Collect real tracee JSON and verify the tracee pattern before release.",
-    "Record the documentation initialization in CHANGELOG.md (done)."
+    "Approve the resolved plan and task list.",
+    "Start T1: Cargo scaffold, rust-toolchain.toml, edition 2024, direct inotify 0.11.x, module skeletons.",
+    "Create the containerized CI workflow in T2 and validate it on the pushed branch.",
+    "Implement the bounded queue and notifier worker in T9 with retry/drop-log tests."
   ]
 }
