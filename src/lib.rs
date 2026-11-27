@@ -10,6 +10,7 @@ pub mod cooldown;
 pub mod notify;
 pub mod pattern;
 pub mod tail;
+pub mod watch;
 
 /// Crate version from Cargo metadata.
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");

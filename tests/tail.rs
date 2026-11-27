@@ -1,70 +1,23 @@
 //! Tail state machine tests.
 #![allow(clippy::expect_used)]
 
-use std::fs::{self, OpenOptions};
-use std::io::Write;
-use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicU64, Ordering};
+mod common;
 
-use log_notify::tail::{Line, TailError, Tailer};
+use std::fs;
 
-static NEXT: AtomicU64 = AtomicU64::new(0);
+use common::{TestDir, append, line};
+use log_notify::tail::{TailError, Tailer};
 
-struct TestDir {
-    path: PathBuf,
-}
-
-impl TestDir {
-    fn new() -> Self {
-        let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("artifacts/tests/tail");
-        fs::create_dir_all(&base).expect("create tail test base");
-        let id = format!(
-            "{}-{}",
-            std::process::id(),
-            NEXT.fetch_add(1, Ordering::Relaxed)
-        );
-        let path = base.join(id);
-        fs::create_dir_all(&path).expect("create tail test dir");
-        Self { path }
-    }
-
-    fn file(&self, name: &str) -> PathBuf {
-        self.path.join(name)
-    }
-}
-
-impl Drop for TestDir {
-    fn drop(&mut self) {
-        let _ = fs::remove_dir_all(&self.path);
-    }
-}
-
-fn append(path: &Path, data: &[u8]) {
-    let mut file = OpenOptions::new()
-        .append(true)
-        .create(true)
-        .open(path)
-        .expect("open for append");
-    file.write_all(data).expect("append data");
-}
-
-fn open_empty(dir: &TestDir, line_cap: usize) -> (PathBuf, Tailer) {
+fn open_empty(dir: &TestDir, line_cap: usize) -> (std::path::PathBuf, Tailer) {
     let path = dir.file("app.log");
     fs::write(&path, b"").expect("create file");
     let tailer = Tailer::open(&path, line_cap).expect("open tailer");
     (path, tailer)
 }
 
-fn line(text: &str, truncated: bool) -> Line {
-    Line {
-        text: text.to_owned(),
-        truncated,
-    }
-}
-
 #[test]
 fn starts_at_end_and_reads_appended_lines() {
-    let dir = TestDir::new();
+    let dir = TestDir::new("tail");
     let path = dir.file("app.log");
     fs::write(&path, b"old\n").expect("write old");
 
@@ -81,7 +34,7 @@ fn starts_at_end_and_reads_appended_lines() {
 
 #[test]
 fn buffers_partial_line_until_newline() {
-    let dir = TestDir::new();
+    let dir = TestDir::new("tail");
     let (path, mut tailer) = open_empty(&dir, 8192);
 
     append(&path, b"par");
@@ -95,7 +48,7 @@ fn buffers_partial_line_until_newline() {
 
 #[test]
 fn returns_multiple_complete_lines_and_keeps_the_tail() {
-    let dir = TestDir::new();
+    let dir = TestDir::new("tail");
     let (path, mut tailer) = open_empty(&dir, 8192);
 
     append(&path, b"a\nb\nc");
@@ -115,7 +68,7 @@ fn returns_multiple_complete_lines_and_keeps_the_tail() {
 
 #[test]
 fn caps_long_line_and_marks_it_truncated() {
-    let dir = TestDir::new();
+    let dir = TestDir::new("tail");
     let (path, mut tailer) = open_empty(&dir, 8);
 
     append(&path, b"123456789012\nnext\n");
@@ -126,7 +79,7 @@ fn caps_long_line_and_marks_it_truncated() {
 
 #[test]
 fn exact_cap_is_not_truncated() {
-    let dir = TestDir::new();
+    let dir = TestDir::new("tail");
     let (path, mut tailer) = open_empty(&dir, 8);
 
     append(&path, b"12345678\n");
@@ -137,7 +90,7 @@ fn exact_cap_is_not_truncated() {
 
 #[test]
 fn invalid_utf8_is_lossy() {
-    let dir = TestDir::new();
+    let dir = TestDir::new("tail");
     let (path, mut tailer) = open_empty(&dir, 8192);
 
     append(&path, &[0xff, b'\n']);
@@ -150,7 +103,7 @@ fn invalid_utf8_is_lossy() {
 
 #[test]
 fn empty_lines_are_emitted() {
-    let dir = TestDir::new();
+    let dir = TestDir::new("tail");
     let (path, mut tailer) = open_empty(&dir, 8192);
 
     append(&path, b"\n\n");
@@ -161,7 +114,7 @@ fn empty_lines_are_emitted() {
 
 #[test]
 fn partial_line_survives_end_of_file() {
-    let dir = TestDir::new();
+    let dir = TestDir::new("tail");
     let (path, mut tailer) = open_empty(&dir, 8192);
 
     append(&path, b"abc");
@@ -177,7 +130,7 @@ fn partial_line_survives_end_of_file() {
 
 #[test]
 fn rejects_zero_line_cap() {
-    let dir = TestDir::new();
+    let dir = TestDir::new("tail");
     let path = dir.file("app.log");
     fs::write(&path, b"").expect("create file");
 
@@ -188,7 +141,7 @@ fn rejects_zero_line_cap() {
 
 #[test]
 fn reports_open_error_with_path() {
-    let dir = TestDir::new();
+    let dir = TestDir::new("tail");
     let path = dir.file("missing.log");
 
     let err = Tailer::open(&path, 8192).expect_err("missing file");

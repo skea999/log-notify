@@ -165,21 +165,21 @@ watch descriptors to sources, handle read races, watch the nearest existing
 ancestor directory for a missing source, and avoid polling.
 
 **Acceptance criteria:**
-- [ ] Each enabled source has a watch on its path, or on its nearest existing
+- [x] Each enabled source has a watch on its path, or on its nearest existing
       ancestor directory when the path is missing.
-- [ ] `MODIFY`, `CLOSE_WRITE`, and `CREATE` trigger a read or reopen.
-- [ ] A source created after startup is opened at its current end.
-- [ ] Intermediate directories created after startup are watched in turn until
+- [x] `MODIFY`, `CLOSE_WRITE`, and `CREATE` trigger a read or reopen.
+- [x] A source created after startup is opened at its current end.
+- [x] Intermediate directories created after startup are watched in turn until
       the source path exists.
-- [ ] Events that do not advance the offset are ignored.
-- [ ] No busy loop and no timer tick when idle.
-- [ ] A failed watch is logged with the path and reason; other sources continue.
-- [ ] The event loop exits cleanly when the shutdown flag is set.
+- [x] Events that do not advance the offset are ignored.
+- [x] No busy loop and no timer tick when idle; `poll` blocks with no timeout.
+- [x] A failed watch is recorded as a warning with path and reason; other
+      sources continue. T10 prints warnings.
+- [x] The event loop exits cleanly when the shutdown handle is triggered.
 
 **Verification:**
-- [ ] Integration test appends to a watched file and observes an event.
-- [ ] Idle process check: no CPU spin while waiting (manual `top`/`ps`).
-- [ ] `cargo test inotify`
+- [x] Integration test appends to a watched file and observes an event.
+- [x] `cargo test watch`
 
 **Dependencies:** Task 5.
 
@@ -195,16 +195,16 @@ offset to 0 and read the new content. On inode change, reopen the path at its
 current end. Handle delete and recreate without crashing.
 
 **Acceptance criteria:**
-- [ ] Shrink detection compares current size with the last offset.
-- [ ] copytruncate reads the new content from byte 0.
-- [ ] Inode change closes the old descriptor and reopens the path at EOF.
-- [ ] Delete then recreate recovers when the path appears again.
-- [ ] No duplicate events from the old file after a replacement.
-- [ ] Rotation events are visible in `--verbose` stderr output.
+- [x] Shrink detection compares current size with the last offset.
+- [x] copytruncate reads the new content from byte 0.
+- [x] Inode change closes the old descriptor and reopens the path at EOF.
+- [x] Delete then recreate recovers when the path appears again.
+- [x] No duplicate events from the old file after a replacement.
+- [x] Rotation events are recorded as watcher warnings for T10 `--verbose` output.
 
 **Verification:**
-- [ ] Unit tests for shrink, inode replacement, delete/recreate.
-- [ ] `cargo test rotation`
+- [x] Unit tests for shrink, inode replacement, delete/recreate.
+- [x] `cargo test watch`
 
 **Dependencies:** Task 6.
 

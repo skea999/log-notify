@@ -1,10 +1,10 @@
 {
   "goal": "log-notify v0.1: Rust daemon that tails configured log files, matches per-source regexes, and emits freedesktop notifications through D-Bus with reliable bounded delivery.",
-  "status": "t5-complete",
+  "status": "t7-complete",
   "active_goals": [
-    "T1 scaffold, T2 CI, T3 config, T4 pattern engine, and T5 tail core complete.",
-    "T5: EOF start, partial line buffer, 8 KiB cap with discard state, lossy UTF-8, 10 tests.",
-    "Next: T6 inotify watch and event loop, then T7 rotation."
+    "T1 scaffold, T2 CI, T3 config, T4 pattern, T5 tail core, T6 watcher, T7 rotation complete.",
+    "Watcher uses inotify directory watches, poll with a shutdown pipe, missing-ancestor tracking, shrink reset, inode reopen, delete/recreate.",
+    "Next: T8 cooldown, then T9 queue/worker/zbus."
   ],
   "decisions": [
     "Rust stable, edition 2024, single binary, Linux only, synchronous main loop, inotify-driven with no polling.",
@@ -33,19 +33,23 @@
     "No match path avoids template rendering and notification allocation.",
     "Tailer opens at EOF, tracks dev/inode/offset, buffers partial lines, keeps a capped prefix, discards the rest until newline, and marks truncated lines.",
     "Invalid UTF-8 is converted with String::from_utf8_lossy per line; no panic.",
-    "Read/open errors carry the source path in TailError; the event loop will isolate failures per source."
+    "Read/open errors carry the source path in TailError; the event loop will isolate failures per source.",
+    "Watch the nearest existing ancestor directory, not the source file; reconcile every source on events. This covers missing files and rotation uniformly.",
+    "Use inotify nonblocking reads with rustix poll and a nonblocking self-pipe for shutdown; no polling loop.",
+    "Store dev/inode/offset in Tailer; shrink resets to byte 0, inode replacement reopens at EOF, delete/recreate opens at EOF.",
+    "Watcher warnings (missing source, failed watch, rotation, overflow, read errors) are accumulated for T10 to log."
   ],
   "risks": [
+    "Watcher warnings are not yet printed by a CLI; T10 must consume them.",
     "Queue overflow or permanent notification-service absence drops events; every drop is logged, but delivery is not guaranteed.",
     "Pending in-memory events are lost on restart by design.",
     "A retry after an uncertain reply can duplicate a notification. Accepted: duplicate over silent loss.",
-    "/var/log/log-notify.log may not be writable by a user-session service; stderr fallback is implemented.",
-    "Session-memory scripts fail on this host with Nix libc relocation errors; context-mode ctx_* tools and this state file are the working alternative.",
-    "Template Node/JS files remain in the repo because the OpenCode harness uses them; they are not the project stack."
+    "Git push is currently blocked by a locked libsecret keyring; local commits are ahead of origin.",
+    "Session-memory scripts fail on this host with Nix libc relocation errors; context-mode ctx_* tools and this state file are the working alternative."
   ],
   "next_actions": [
-    "Start T6: direct inotify watches, event mapping, reads, parent watch for missing sources.",
-    "Start T7 after T6: shrink reset and inode reopen.",
-    "Run scripts/dev.sh verify before push; jscpd threshold is zero."
+    "Start T8: per-source cooldown with injectable monotonic clock.",
+    "Implement T9 queue/worker/zbus/dropped log with fault tests.",
+    "Unlock the GitHub keyring, then push the local T5/T6/T7 commits and confirm CI."
   ]
 }

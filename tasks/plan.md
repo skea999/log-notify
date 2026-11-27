@@ -76,15 +76,15 @@ No async runtime. No network dependency.
 ### Phase 3: Tail engine
 
 - [x] T5: Tail core: EOF start, complete lines, partial buffer, line cap
-- [ ] T6: inotify watch and event loop
-- [ ] T7: Rotation and inode handling
+- [x] T6: inotify watch and event loop
+- [x] T7: Rotation and inode handling
 
 **Checkpoint: Tail**
-- [ ] Append emits exactly one event per complete line
-- [ ] Partial line is buffered
-- [ ] 64 KiB line is capped to one event without panic
-- [ ] copytruncate resets and reads new content
-- [ ] inode replacement reopens at end
+- [x] Append emits exactly one event per complete line
+- [x] Partial line is buffered
+- [x] 64 KiB line is capped to one event without panic
+- [x] copytruncate resets and reads new content
+- [x] inode replacement reopens at end
 
 ### Phase 4: Cooldown, queue, notifications
 

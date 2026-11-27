@@ -45,6 +45,22 @@ pub enum TailError {
     /// The configured line cap is invalid.
     #[error("line cap must be greater than 0")]
     InvalidLineCap,
+    /// The inotify instance failed.
+    #[error("inotify error: {source}")]
+    Inotify {
+        /// Underlying I/O error.
+        #[source]
+        source: std::io::Error,
+    },
+    /// A directory watch could not be added.
+    #[error("cannot watch {path}: {source}")]
+    Watch {
+        /// Watched directory.
+        path: PathBuf,
+        /// Underlying I/O error.
+        #[source]
+        source: std::io::Error,
+    },
 }
 
 /// Per-source tail state.
@@ -146,6 +162,20 @@ impl Tailer {
         }
 
         Ok(lines)
+    }
+
+    /// Reset to the start of the file after a shrink (copytruncate).
+    pub fn reset_to_start(&mut self) -> Result<(), TailError> {
+        self.file
+            .seek(SeekFrom::Start(0))
+            .map_err(|source| TailError::Read {
+                path: self.path.clone(),
+                source,
+            })?;
+        self.offset = 0;
+        self.partial.clear();
+        self.discarding = false;
+        Ok(())
     }
 
     fn feed(&mut self, byte: u8, lines: &mut Vec<Line>) {

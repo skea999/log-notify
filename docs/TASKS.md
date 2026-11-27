@@ -10,8 +10,6 @@ Implementation plan: [`tasks/plan.md`](../tasks/plan.md).
 
 ### Todo
 
-- [ ] T6 — inotify watch and event loop
-- [ ] T7 — Rotation and inode handling
 - [ ] T8 — Per-source cooldown
 - [ ] T9 — Bounded queue, notifier worker, zbus backend, dropped log
 - [ ] T10 — CLI, config path resolution, lifecycle
@@ -31,6 +29,8 @@ None.
 - [x] T3 — Config model, TOML parsing, validation — 2026-11-26; 17 tests
 - [x] T4 — Pattern and template engine — 2026-11-26; 12 tests
 - [x] T5 — Tail core: EOF start, complete lines, partial buffer, line cap — 2026-11-27; 10 tests
+- [x] T6 — inotify watch and event loop — 2026-11-27; 8 watch tests
+- [x] T7 — Rotation and inode handling — 2026-11-27; covered by watch tests
 - [x] Project initialization: docs, ADRs, plan, task list, state — 2026-11-26
 
 ## Backlog

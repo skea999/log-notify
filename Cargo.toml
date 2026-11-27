@@ -11,7 +11,9 @@ keywords = ["linux", "daemon", "notifications", "logs", "security"]
 categories = ["command-line-utilities", "system-tools"]
 
 [dependencies]
+inotify = "0.11"
 regex = "1"
+rustix = { version = "1", features = ["event", "pipe", "std"] }
 serde = { version = "1", features = ["derive"] }
 thiserror = "2"
 toml = "1"
