@@ -13,6 +13,7 @@ All notable changes to this project are documented in this file (Keep a Changelo
 - Rust scaffold: `Cargo.toml`, `rust-toolchain.toml`, module skeletons, `--version` smoke test, and the shipped default config.
 - T3 config layer: serde/toml schema with `Spanned` errors, documented defaults, queue capacity range, source validation, default path resolution, and 14 tests.
 - T4 pattern engine: compile regexes once at load, `{line}` and named captures, `{{`/`}}` literals, and config-load errors with precise spans; 12 tests.
+- T5 tail core: EOF start, partial-line buffering, capped long lines with truncation flag, lossy UTF-8, file identity/offset tracking, and 10 tests.
 - Local container entry point `scripts/dev.sh` with the same gates as CI.
 
 ### Changed

@@ -139,18 +139,18 @@ complete lines in order. Non-UTF-8 bytes use lossy conversion. An over-cap line
 keeps the capped prefix, discards the rest until the newline, and matches once.
 
 **Acceptance criteria:**
-- [ ] Initial offset equals the current file size; existing content is not read.
-- [ ] Appended complete lines are emitted exactly once.
-- [ ] A trailing partial line is buffered until its newline arrives.
-- [ ] A 64 KiB line is capped at `line_cap_bytes` before matching, with no panic,
+- [x] Initial offset equals the current file size; existing content is not read.
+- [x] Appended complete lines are emitted exactly once.
+- [x] A trailing partial line is buffered until its newline arrives.
+- [x] A 64 KiB line is capped at `line_cap_bytes` before matching, with no panic,
       no unbounded memory growth, and at most one event for that line.
-- [ ] Invalid UTF-8 does not panic; the chosen lossy policy is applied and tested.
-- [ ] Read errors are reported with the source path and do not kill other
+- [x] Invalid UTF-8 does not panic; the chosen lossy policy is applied and tested.
+- [x] Read errors are reported with the source path and do not kill other
       sources.
 
 **Verification:**
-- [ ] Unit tests with temp files for append, partial, cap, and invalid bytes.
-- [ ] `cargo test tail`
+- [x] Unit tests with temp files for append, partial, cap, and invalid bytes.
+- [x] `cargo test tail`
 
 **Dependencies:** Task 1.
 

@@ -1,11 +1,10 @@
 {
   "goal": "log-notify v0.1: Rust daemon that tails configured log files, matches per-source regexes, and emits freedesktop notifications through D-Bus with reliable bounded delivery.",
-  "status": "t4-complete",
+  "status": "t5-complete",
   "active_goals": [
-    "T1 scaffold, T2 CI, T3 config, and T4 pattern engine complete (2026-11-26).",
-    "T4: regex compile once, {line} + named captures, {{ }} literals, config-load errors with spans.",
-    "Next: T5 tail core (checkpoint review before tail work).",
-    "GitHub Actions verify is green; release job tag-gated."
+    "T1 scaffold, T2 CI, T3 config, T4 pattern engine, and T5 tail core complete.",
+    "T5: EOF start, partial line buffer, 8 KiB cap with discard state, lossy UTF-8, 10 tests.",
+    "Next: T6 inotify watch and event loop, then T7 rotation."
   ],
   "decisions": [
     "Rust stable, edition 2024, single binary, Linux only, synchronous main loop, inotify-driven with no polling.",
@@ -31,7 +30,10 @@
     "Explicit --config path bypasses default resolution; otherwise /etc/log-notify/log-notify.toml then ~/.config/log-notify/log-notify.toml.",
     "Patterns compile once at config load; Source keeps the raw strings for diagnostics and a CompiledPattern for matching.",
     "Templates support {line} and named capture groups; {{ and }} are literal braces; unknown placeholders, unmatched braces, and a capture named line are config errors.",
-    "No match path avoids template rendering and notification allocation."
+    "No match path avoids template rendering and notification allocation.",
+    "Tailer opens at EOF, tracks dev/inode/offset, buffers partial lines, keeps a capped prefix, discards the rest until newline, and marks truncated lines.",
+    "Invalid UTF-8 is converted with String::from_utf8_lossy per line; no panic.",
+    "Read/open errors carry the source path in TailError; the event loop will isolate failures per source."
   ],
   "risks": [
     "Queue overflow or permanent notification-service absence drops events; every drop is logged, but delivery is not guaranteed.",
@@ -42,8 +44,8 @@
     "Template Node/JS files remain in the repo because the OpenCode harness uses them; they are not the project stack."
   ],
   "next_actions": [
-    "Review T4 before tail work (checkpoint).",
-    "Start T5: EOF start, complete lines, partial buffer, line cap, lossy UTF-8.",
-    "Keep config/pattern tests green; run scripts/dev.sh verify before push."
+    "Start T6: direct inotify watches, event mapping, reads, parent watch for missing sources.",
+    "Start T7 after T6: shrink reset and inode reopen.",
+    "Run scripts/dev.sh verify before push; jscpd threshold is zero."
   ]
 }

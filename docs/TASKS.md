@@ -10,7 +10,6 @@ Implementation plan: [`tasks/plan.md`](../tasks/plan.md).
 
 ### Todo
 
-- [ ] T5 — Tail engine: EOF start, complete lines, line cap
 - [ ] T6 — inotify watch and event loop
 - [ ] T7 — Rotation and inode handling
 - [ ] T8 — Per-source cooldown
@@ -29,8 +28,9 @@ None.
 
 - [x] T1 — Cargo scaffold, toolchain, module skeleton — 2026-11-26
 - [x] T2 — Containerized CI gates — 2026-11-26; GitHub Actions run `45864736126` green
-- [x] T3 — Config model, TOML parsing, validation — 2026-11-26; 14 tests
+- [x] T3 — Config model, TOML parsing, validation — 2026-11-26; 17 tests
 - [x] T4 — Pattern and template engine — 2026-11-26; 12 tests
+- [x] T5 — Tail core: EOF start, complete lines, partial buffer, line cap — 2026-11-27; 10 tests
 - [x] Project initialization: docs, ADRs, plan, task list, state — 2026-11-26
 
 ## Backlog

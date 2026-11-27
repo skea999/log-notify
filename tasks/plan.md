@@ -75,7 +75,7 @@ No async runtime. No network dependency.
 
 ### Phase 3: Tail engine
 
-- [ ] T5: Tail core: EOF start, complete lines, partial buffer, line cap
+- [x] T5: Tail core: EOF start, complete lines, partial buffer, line cap
 - [ ] T6: inotify watch and event loop
 - [ ] T7: Rotation and inode handling
 
