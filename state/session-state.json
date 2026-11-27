@@ -1,10 +1,10 @@
 {
   "goal": "log-notify v0.1: Rust daemon that tails configured log files, matches per-source regexes, and emits freedesktop notifications through D-Bus with reliable bounded delivery.",
-  "status": "t11-complete",
+  "status": "t13-complete",
   "active_goals": [
-    "T1-T11 complete: docs, CI, config, pattern, tail, watcher, rotation, cooldown, delivery, CLI, lock/signals.",
-    "Single-instance flock at $XDG_RUNTIME_DIR/log-notify.lock with /run/user/<uid> fallback; SIGTERM/SIGINT wake watcher and exit 0; SIGHUP logged/ignored.",
-    "Next: T12 fixture integration tests, T13 default config verification, T14 release."
+    "T1-T13 complete: implementation, CLI, lifecycle, fixtures, default config verification.",
+    "All five shipped default sources match representative fixture lines; patterns remain config data.",
+    "Only T14 release tag/artifact verification remains before v0.1.0."
   ],
   "decisions": [
     "Rust stable, edition 2024, single binary, Linux only, synchronous main loop, inotify-driven with no polling.",
@@ -49,7 +49,9 @@
     "Dropped log is opened at startup with stderr fallback; dry-run still computes matches and cooldown but never touches D-Bus.",
     "Lock uses rustix flock nonblocking exclusive; the open File is held for the process lifetime.",
     "signal-hook iterator thread calls Watcher shutdown handle on SIGTERM/SIGINT; SIGHUP is logged and ignored.",
-    "Watcher poll treats EINTR as a wake and retries, so signal interruption does not fail shutdown."
+    "Watcher poll treats EINTR as a wake and retries, so signal interruption does not fail shutdown.",
+    "Fixture integration loads the shipped config and matches fail2ban, clamav, tracee, aide, auditd sample lines.",
+    "Source behavior stays config-only; the only hardcoded log path in Rust is the dropped-event log default."
   ],
   "risks": [
     "Watcher warnings are not yet printed by a CLI; T10 must consume them.",
@@ -59,8 +61,8 @@
     "Session-memory scripts fail on this host with Nix libc relocation errors; context-mode ctx_* tools and this state file are the working alternative."
   ],
   "next_actions": [
-    "Start T12: fixture end-to-end tests for dry-run, cooldown, rotation, queue drop, once.",
-    "Verify default config patterns with fixtures in T13.",
-    "Run full verify and push after T12/T13/T14."
+    "Finish T14: tag-driven release verification or create v0.1.0 tag after approval.",
+    "Run final verify and update README/roadmap/state.",
+    "Ask before publishing the first GitHub release."
   ]
 }

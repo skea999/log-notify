@@ -10,8 +10,6 @@ Implementation plan: [`tasks/plan.md`](../tasks/plan.md).
 
 ### Todo
 
-- [ ] T12 — Fixture integration tests
-- [ ] T13 — Default config and config-only behavior
 - [ ] T14 — Release CI and musl artifact
 
 ### In Progress
@@ -31,6 +29,8 @@ None.
 - [x] T9 — Bounded queue, notifier worker, zbus backend, dropped log — 2026-11-27; 6 tests
 - [x] T10 — CLI, config path resolution, lifecycle — 2026-11-27; 4 CLI tests
 - [x] T11 — Lockfile and signal handling — 2026-11-27; 2 lock tests, SIGTERM and second-instance CLI tests
+- [x] T12 — Fixture integration tests — 2026-11-27; 2 integration tests + fixtures
+- [x] T13 — Default config and config-only behavior — 2026-11-27; all 5 sources matched
 - [x] Project initialization: docs, ADRs, plan, task list, state — 2026-11-26
 
 ## Backlog

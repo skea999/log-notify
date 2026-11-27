@@ -350,18 +350,18 @@ daemon with `--dry-run`, assert stdout events, exercise cooldown, rotation,
 queue overflow, retry/drop logging, and `--once`. Cover the spec §7 minimum bar.
 
 **Acceptance criteria:**
-- [ ] Pattern engine: named captures, placeholder substitution, invalid regex.
-- [ ] Tail: append, partial, copytruncate, inode replacement, 64 KiB line.
-- [ ] Cooldown: suppressed inside window, emitted after.
-- [ ] Queue: per-source capacity, oldest drop, dropped-event log line.
-- [ ] Notifier: transient retry, terminal drop, stderr fallback.
-- [ ] Config: missing file, bad TOML, bad regex, bad queue capacity, empty sources.
-- [ ] Integration: fixture append produces the correct stdout event.
-- [ ] Tests do not read real system logs and do not need D-Bus.
+- [x] Pattern engine: named captures, placeholder substitution, invalid regex.
+- [x] Tail: append, partial, copytruncate, inode replacement, 64 KiB line.
+- [x] Cooldown: suppressed inside window, emitted after.
+- [x] Queue: per-source capacity, oldest drop, dropped-event log line.
+- [x] Notifier: transient retry, terminal drop, stderr fallback.
+- [x] Config: missing file, bad TOML, bad regex, bad queue capacity, empty sources.
+- [x] Integration: fixture append produces the correct stdout event.
+- [x] Tests do not read real system logs and do not need D-Bus.
 
 **Verification:**
-- [ ] `cargo test`
-- [ ] Review the fixture outputs against `docs/log-notify-spec.md` §7.
+- [x] `cargo test`
+- [x] Review the fixture outputs against `docs/log-notify-spec.md` §7.
 
 **Dependencies:** Task 7, Task 9, Task 10.
 
@@ -378,17 +378,17 @@ generic: sources, patterns, templates, urgency, cooldown, and queue capacity are
 data. Adding or removing a source requires only a TOML edit, never a code change.
 
 **Acceptance criteria:**
-- [ ] Config matches the spec's source set and defaults.
-- [ ] `line_cap_bytes = 8192`, `dropped_log`, and `queue_capacity = 10` are
+- [x] Config matches the spec's source set and defaults.
+- [x] `line_cap_bytes = 8192`, `dropped_log`, and `queue_capacity = 10` are
       present or documented as defaults.
-- [ ] Each supplied pattern is tested against a representative fixture line.
-- [ ] No tool name, log path, or pattern is hardcoded in Rust.
-- [ ] Adding and removing a source works by editing only the TOML.
-- [ ] A README command loads the shipped config successfully.
+- [x] Each supplied pattern is tested against a representative fixture line.
+- [x] No tool name, log path, or pattern is hardcoded in Rust.
+- [x] Adding and removing a source works by editing only the TOML.
+- [x] A README command loads the shipped config successfully.
 
 **Verification:**
-- [ ] `log-notify --config config/log-notify.toml --dry-run --once`
-- [ ] Pattern checks documented in the task notes or CHANGELOG.
+- [x] Config loads and fixture patterns match in `tests/integration.rs`.
+- [x] Pattern checks documented in the task notes or CHANGELOG.
 
 **Dependencies:** Task 4, Task 12.
 

@@ -103,8 +103,8 @@ No async runtime. No network dependency.
 
 - [x] T10: CLI, config path resolution, lifecycle
 - [x] T11: Lockfile and signal handling
-- [ ] T12: Fixture integration tests
-- [ ] T13: Default config and config-only behavior
+- [x] T12: Fixture integration tests
+- [x] T13: Default config and config-only behavior
 - [ ] T14: Release CI and musl artifact
 
 **Checkpoint: v0.1 complete**
