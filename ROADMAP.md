@@ -1,12 +1,12 @@
 # Roadmap
 
-**Status:** v0.1 implemented; first release tag pending.
+**Status:** v0.1.0 released 2026-11-27. v0.2 next.
 
 ## Milestones
 
 | Ver | Target | Status | What |
 |-----|--------|--------|------|
-| 0.1.0 | TBD | Implemented | Rust daemon: TOML config, fail-loud validation, inotify tailer, regex matching, cooldown, bounded queue, notifier worker, zbus 6.5, dropped-event log, CLI, tests, containerized CI, default config, tag-driven release with musl artifact. |
+| 0.1.0 | 2026-11-27 | Released | Rust daemon: TOML config, fail-loud validation, inotify tailer, regex matching, cooldown, bounded queue, notifier worker, zbus 6.5, dropped-event log, CLI, tests, containerized CI, default config, tag-driven release with musl artifact and Nix flake. |
 | 0.2.0 | TBD | Planned | SIGHUP config reload, per-source `replaces_id` reuse, dropped-log reopen on rotation, packaging polish. |
 | Downstream | TBD | Out of scope | FeralOS aports package and user dinit unit. Done in the FeralOS repositories, not here. |
 

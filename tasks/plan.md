@@ -105,7 +105,7 @@ No async runtime. No network dependency.
 - [x] T11: Lockfile and signal handling
 - [x] T12: Fixture integration tests
 - [x] T13: Default config and config-only behavior
-- [ ] T14: Release CI and musl artifact
+- [x] T14: Release CI and musl artifact
 
 **Checkpoint: v0.1 complete**
 - [ ] All spec §7 tests pass

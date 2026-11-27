@@ -1,6 +1,6 @@
 # PROJECT — log-notify
 
-**Status**: Implemented (release pending)
+**Status**: Released v0.1.0 (2026-11-27)
 **Stack**: Rust stable, Linux only; inotify + D-Bus
 
 ## Vision

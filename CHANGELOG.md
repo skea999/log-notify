@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file (Keep a Changelo
 
 ## [0.1.0] — 2026-11-27
 
+### Release
+
+- Tag `v0.1.0` published: static musl tarball + sha256 and Nix flake source + sha256.
+- Tag CI `46040580232` green: verify, release, and Nix jobs.
+- `nix/binary.nix` pinned on main by commit `18acb9d`.
+
 ### Added
 
 - Project initialization for `log-notify`: README with CLI and config reference, project context, domain vocabulary, architecture, roadmap, project brief, implementation plan, and ordered task list.

@@ -404,8 +404,8 @@ release binary, including `x86_64-unknown-linux-musl`, plus a Nix flake that
 packages the pinned tarball. Keep the same quality gates as CI.
 
 **Acceptance criteria:**
-- [ ] Tag push builds the release binary.
-- [ ] musl static build succeeds and is uploaded as an artifact.
+- [x] Tag push builds the release binary.
+- [x] musl static build succeeds and is uploaded as an artifact.
 - [x] fmt, clippy, and tests run before the build.
 - [x] The workflow uses a container and pinned toolchain.
 - [x] Release notes or changelog entry is produced or documented.
@@ -413,8 +413,8 @@ packages the pinned tarball. Keep the same quality gates as CI.
 - [x] The Nix CI job lints/evaluates on PR/main and pins the tag release.
 
 **Verification:**
-- [ ] Dry-run the workflow on a test tag.
-- [ ] Download the artifact and run `--version`.
+- [x] Dry-run the workflow on a test tag.
+- [x] Download the artifact and run `--version`.
 - [x] `file` reports a static binary for the musl artifact.
 
 **Dependencies:** Task 12.
@@ -426,8 +426,8 @@ packages the pinned tarball. Keep the same quality gates as CI.
 **Checkpoint: v0.1 complete**
 - [x] Every spec §7 test passes.
 - [x] Manual fixture run matches expected events.
-- [ ] README commands work from a clean checkout.
-- [ ] Release artifact exists.
+- [x] README commands work from a clean checkout.
+- [x] Release artifact exists.
 - [x] Queue overflow and failed delivery drops are logged.
 - [x] Adding or removing a source needs only a TOML edit.
-- [ ] Human review and approval before tagging v0.1.0.
+- [x] Human review and approval before tagging v0.1.0.

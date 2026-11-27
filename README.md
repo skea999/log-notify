@@ -9,10 +9,8 @@ desktop notifications.
 security control: it reads logs, reports matches, and keeps running when the
 desktop notification service is absent.
 
-**Status:** v0.1 implemented on 2026-11-27. CI is green. The first tagged
-release is pending approval. The contract below is defined by
-[`docs/log-notify-spec.md`](docs/log-notify-spec.md) and implemented in
-[`tasks/plan.md`](tasks/plan.md).
+**Status:** v0.1.0 released on 2026-11-27. CI is green. Release assets:
+[`v0.1.0`](https://github.com/skea999/log-notify/releases/tag/v0.1.0).
 
 ## Overview
 
@@ -106,9 +104,8 @@ nix build
 nix profile install .
 ```
 
-On a release tag, CI pins `nix/binary.nix` to the published tarball and attaches
-the flake source to the GitHub release. Before the first release, the placeholder
-sha256 prevents a local `nix build`; the tag job replaces it.
+`nix/binary.nix` is pinned to the published `v0.1.0` tarball. CI updates the
+pin on every `v*` tag and attaches the flake source to the release.
 
 ## Usage
 
