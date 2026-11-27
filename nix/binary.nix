@@ -11,5 +11,5 @@
   version = "0.1.0";
   url = "https://github.com/skea999/log-notify/releases/download/v0.1.0/log-notify-v0.1.0-x86_64-musl.tar.gz";
   # Replace with the release tarball sha256 before a manual flake build.
-  sha256 = "0000000000000000000000000000000000000000000000000000000000000000";
+  sha256 = "2a225dce3052af5dd6fd8fe1489fcfcf3051c13e8f920a454b4d25a59d294c5e";
 }
