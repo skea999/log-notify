@@ -1,10 +1,10 @@
 {
   "goal": "log-notify v0.1: Rust daemon that tails configured log files, matches per-source regexes, and emits freedesktop notifications through D-Bus with reliable bounded delivery.",
-  "status": "t9-complete",
+  "status": "t10-complete",
   "active_goals": [
-    "T1-T9 complete: scaffold, CI, config, pattern, tail, watcher, rotation, cooldown, notification pipeline.",
-    "T9: bounded per-source queue, worker, dropped log, zbus 6.5 block_on, 5s timeout, 3 retries at 1/2/4s, dry-run notifier.",
-    "Next: T10 CLI, lifecycle, --dry-run/--once/--verbose wiring."
+    "T1-T10 complete: docs, CI, config, pattern, tail, watcher, rotation, cooldown, delivery, CLI.",
+    "CLI supports config selection, dry-run, once, verbose, version; continuous mode uses Watcher + CooldownSet + EventQueue + Worker.",
+    "Next: T11 lockfile and signals, then fixture integration tests and release."
   ],
   "decisions": [
     "Rust stable, edition 2024, single binary, Linux only, synchronous main loop, inotify-driven with no polling.",
@@ -42,7 +42,11 @@
     "Notification delivery uses a bounded EventQueue with per-source capacities; overflow drops the oldest event of that source and logs queue_full.",
     "Worker owns the notifier; retries transient failures 3 times with 1/2/4s, drops no_service immediately, logs terminal notify_failed.",
     "DroppedLog appends timestamp/path/reason/detail/summary/body, flushes each line, falls back to stderr.",
-    "ZbusNotifier uses zbus 6.5 Builder::session().method_timeout(5s), block_on, urgency hint, critical expiry 0, normal/low -1; reconnects lazily after errors."
+    "ZbusNotifier uses zbus 6.5 Builder::session().method_timeout(5s), block_on, urgency hint, critical expiry 0, normal/low -1; reconnects lazily after errors.",
+    "CLI uses clap; disabled sources are filtered and active indices map back to config sources.",
+    "--once uses direct delivery with retry so the process waits for the delivery/drop outcome; continuous mode uses the queue and worker.",
+    "Watcher warnings are printed to stderr; --verbose prefixes them as tail-debug lines.",
+    "Dropped log is opened at startup with stderr fallback; dry-run still computes matches and cooldown but never touches D-Bus."
   ],
   "risks": [
     "Watcher warnings are not yet printed by a CLI; T10 must consume them.",
@@ -52,8 +56,8 @@
     "Session-memory scripts fail on this host with Nix libc relocation errors; context-mode ctx_* tools and this state file are the working alternative."
   ],
   "next_actions": [
-    "Start T10: CLI parsing, default config resolution, dry-run/once/verbose, startup/shutdown wiring.",
-    "Wire Watcher warnings to stderr in verbose mode and CooldownSet to matching.",
-    "Run full verify; package release build may take >10 minutes on cold cache."
+    "Start T11: lockfile at $XDG_RUNTIME_DIR/log-notify.lock and SIGTERM/SIGINT graceful shutdown.",
+    "Add fixture integration tests and release verification.",
+    "Run full verify and push after T11."
   ]
 }

@@ -286,7 +286,7 @@ never call D-Bus. `replaces_id` is 0 in v0.1.
 - [x] Cooldown, queue, worker, and dropped-log tests pass.
 - [x] Dry-run and fake notifier paths are deterministic.
 - [x] A failing notifier does not stall the main loop.
-- [ ] Review with the human before wiring the daemon.
+- [x] Review with the human before wiring the daemon.
 
 ## Phase 5: Daemon wiring and proof
 
@@ -298,18 +298,18 @@ open sources, start the notifier worker, run the event loop, and implement
 precise messages.
 
 **Acceptance criteria:**
-- [ ] `--config`, `--dry-run`, `--once`, `--verbose`, and `--version` work.
-- [ ] Unknown flags exit non-zero with usage.
-- [ ] Config errors print file, line, and reason and exit non-zero.
-- [ ] `--once` exits after the first regex match; normal mode waits for the
+- [x] `--config`, `--dry-run`, `--once`, `--verbose`, and `--version` work.
+- [x] Unknown flags exit non-zero with usage.
+- [x] Config errors print file, line, and reason and exit non-zero.
+- [x] `--once` exits after the first regex match; normal mode waits for the
       worker's delivery or drop outcome before exit.
-- [ ] `--verbose` adds tail-debug lines; normal mode logs one line per event.
-- [ ] Startup and shutdown leave no orphan watchers or worker threads.
-- [ ] Startup opens the dropped-event log with stderr fallback.
+- [x] `--verbose` adds tail-debug lines; normal mode logs one line per event.
+- [x] Startup and shutdown leave no orphan watchers or worker threads.
+- [x] Startup opens the dropped-event log with stderr fallback.
 
 **Verification:**
-- [ ] Integration tests for each flag.
-- [ ] `cargo test cli`
+- [x] Integration tests for each flag.
+- [x] `cargo test cli`
 
 **Dependencies:** Task 3, Task 7, Task 9.
 

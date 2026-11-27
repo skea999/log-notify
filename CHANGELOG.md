@@ -17,6 +17,7 @@ All notable changes to this project are documented in this file (Keep a Changelo
 - T6/T7 watcher: inotify ancestor-directory watches, poll plus shutdown pipe, missing/intermediate sources, copytruncate reset, inode reopen, delete/recreate, multi-source indices, and 8 tests.
 - T8 cooldown: per-source monotonic windows with injected `Instant`, inclusive boundary, zero disables, and 6 tests.
 - T9 delivery: bounded per-source queue, worker thread, dropped-event log, zbus 6.5 `block_on`, 5 s method timeout, 3 retries at 1/2/4 s, dry-run notifier, and 6 tests.
+- T10 CLI: clap flags (`--config`, `--dry-run`, `--once`, `--verbose`, `--version`), active-source mapping, dry-run/once lifecycle, watcher warnings, worker startup/shutdown, and 3 CLI tests.
 - Local container entry point `scripts/dev.sh` with the same gates as CI.
 
 ### Changed

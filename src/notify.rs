@@ -430,11 +430,12 @@ fn run_worker(
     sleeper: &dyn Sleep,
 ) {
     while let Some(event) = queue.pop() {
-        process_event(notifier.as_mut(), dropped, sleeper, event);
+        deliver_event(notifier.as_mut(), dropped, sleeper, event);
     }
 }
 
-fn process_event(
+/// Deliver one event with the retry policy. Public for `--once`.
+pub fn deliver_event(
     notifier: &mut dyn Notifier,
     dropped: &DroppedLog,
     sleeper: &dyn Sleep,

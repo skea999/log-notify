@@ -101,7 +101,7 @@ No async runtime. No network dependency.
 
 ### Phase 5: Daemon wiring and proof
 
-- [ ] T10: CLI, config path resolution, lifecycle
+- [x] T10: CLI, config path resolution, lifecycle
 - [ ] T11: Lockfile and signal handling
 - [ ] T12: Fixture integration tests
 - [ ] T13: Default config and config-only behavior
