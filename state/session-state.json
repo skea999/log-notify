@@ -4,7 +4,8 @@
   "active_goals": [
     "T1 scaffold, T2 CI, T3 config, T4 pattern, T5 tail core, T6 watcher, T7 rotation complete.",
     "Watcher uses inotify directory watches, poll with a shutdown pipe, missing-ancestor tracking, shrink reset, inode reopen, delete/recreate.",
-    "Next: T8 cooldown, then T9 queue/worker/zbus."
+    "Next: T8 cooldown, then T9 queue/worker/zbus.",
+    "Pushed T5/T6/T7; GitHub Actions run 45986205083 is green."
   ],
   "decisions": [
     "Rust stable, edition 2024, single binary, Linux only, synchronous main loop, inotify-driven with no polling.",
@@ -44,12 +45,10 @@
     "Queue overflow or permanent notification-service absence drops events; every drop is logged, but delivery is not guaranteed.",
     "Pending in-memory events are lost on restart by design.",
     "A retry after an uncertain reply can duplicate a notification. Accepted: duplicate over silent loss.",
-    "Git push is currently blocked by a locked libsecret keyring; local commits are ahead of origin.",
     "Session-memory scripts fail on this host with Nix libc relocation errors; context-mode ctx_* tools and this state file are the working alternative."
   ],
   "next_actions": [
     "Start T8: per-source cooldown with injectable monotonic clock.",
-    "Implement T9 queue/worker/zbus/dropped log with fault tests.",
-    "Unlock the GitHub keyring, then push the local T5/T6/T7 commits and confirm CI."
+    "Implement T9 queue/worker/zbus/dropped log with fault tests."
   ]
 }
