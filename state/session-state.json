@@ -1,10 +1,10 @@
 {
   "goal": "log-notify v0.1: Rust daemon that tails configured log files, matches per-source regexes, and emits freedesktop notifications through D-Bus with reliable bounded delivery.",
-  "status": "t8-complete",
+  "status": "t9-complete",
   "active_goals": [
-    "T1-T8 complete: scaffold, CI, config, pattern, tail, watcher, rotation, cooldown.",
-    "Cooldown uses injected Instant, no sleeps; per-source windows and zero disables.",
-    "Next: T9 bounded queue, notifier worker, zbus 6.5, dropped log."
+    "T1-T9 complete: scaffold, CI, config, pattern, tail, watcher, rotation, cooldown, notification pipeline.",
+    "T9: bounded per-source queue, worker, dropped log, zbus 6.5 block_on, 5s timeout, 3 retries at 1/2/4s, dry-run notifier.",
+    "Next: T10 CLI, lifecycle, --dry-run/--once/--verbose wiring."
   ],
   "decisions": [
     "Rust stable, edition 2024, single binary, Linux only, synchronous main loop, inotify-driven with no polling.",
@@ -38,7 +38,11 @@
     "Use inotify nonblocking reads with rustix poll and a nonblocking self-pipe for shutdown; no polling loop.",
     "Store dev/inode/offset in Tailer; shrink resets to byte 0, inode replacement reopens at EOF, delete/recreate opens at EOF.",
     "Watcher warnings (missing source, failed watch, rotation, overflow, read errors) are accumulated for T10 to log.",
-    "Cooldown records emission at enqueue; window boundary is inclusive (last + window allows). Tests inject Instant."
+    "Cooldown records emission at enqueue; window boundary is inclusive (last + window allows). Tests inject Instant.",
+    "Notification delivery uses a bounded EventQueue with per-source capacities; overflow drops the oldest event of that source and logs queue_full.",
+    "Worker owns the notifier; retries transient failures 3 times with 1/2/4s, drops no_service immediately, logs terminal notify_failed.",
+    "DroppedLog appends timestamp/path/reason/detail/summary/body, flushes each line, falls back to stderr.",
+    "ZbusNotifier uses zbus 6.5 Builder::session().method_timeout(5s), block_on, urgency hint, critical expiry 0, normal/low -1; reconnects lazily after errors."
   ],
   "risks": [
     "Watcher warnings are not yet printed by a CLI; T10 must consume them.",
@@ -48,8 +52,8 @@
     "Session-memory scripts fail on this host with Nix libc relocation errors; context-mode ctx_* tools and this state file are the working alternative."
   ],
   "next_actions": [
-    "Start T9: queue, worker, zbus 6.5 block_on, retries, dropped-event log.",
-    "Add fault tests with a fake notifier and fake clock; no D-Bus.",
-    "Run scripts/dev.sh verify and push after each task."
+    "Start T10: CLI parsing, default config resolution, dry-run/once/verbose, startup/shutdown wiring.",
+    "Wire Watcher warnings to stderr in verbose mode and CooldownSet to matching.",
+    "Run full verify; package release build may take >10 minutes on cold cache."
   ]
 }

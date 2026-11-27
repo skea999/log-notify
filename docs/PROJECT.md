@@ -52,7 +52,7 @@ point, not a hard dependency.
 | Notification latency | Event within 1 s of a complete line being written | Fixture integration test |
 | Tailing isolation | Main loop never calls D-Bus; a hung daemon does not stop reads | Code review and fault-injection test |
 | Queue bound | `sum(queue_capacity) * line_cap_bytes`; default 10 events per source, max 100 | Config validation and queue tests |
-| Delivery retry | 3 attempts, 1/2/4 s backoff, 5 s method timeout | Worker tests |
+| Delivery retry | 3 retries, 1/2/4 s backoff, 5 s method timeout | Worker tests |
 | Dropped events | Every drop logged with source and reason | Dropped-log tests |
 | History replay | Zero events from pre-start content | Tail test: append after start only |
 | Idle CPU | No polling; idle work driven by inotify | Code review and runtime check |

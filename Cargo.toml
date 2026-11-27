@@ -16,7 +16,9 @@ regex = "1"
 rustix = { version = "1", features = ["event", "pipe", "std"] }
 serde = { version = "1", features = ["derive"] }
 thiserror = "2"
+time = { version = "0.3", features = ["formatting"] }
 toml = "1"
+zbus = "6.5"
 
 [lints.rust]
 unsafe_code = "forbid"
@@ -49,6 +51,7 @@ print_stdout = "allow"
 print_stderr = "allow"
 exit = "allow"
 too_many_lines = "allow"
+too_many_arguments = "allow"
 large_futures = "allow"
 multiple_crate_versions = "allow"
 struct_excessive_bools = "allow"

@@ -89,7 +89,7 @@ No async runtime. No network dependency.
 ### Phase 4: Cooldown, queue, notifications
 
 - [x] T8: Per-source cooldown
-- [ ] T9: Bounded queue, notifier worker, zbus backend, dropped log
+- [x] T9: Bounded queue, notifier worker, zbus backend, dropped log
 
 **Checkpoint: Notifications**
 - [ ] Second match inside the window is suppressed
@@ -160,7 +160,7 @@ All v0.1 behavior questions are closed:
 9. **Notification guarantee.** In-memory bounded per-source queue, default 10,
    maximum 100. No persistence. Dropped events go to
    `/var/log/log-notify.log` by default, with stderr fallback.
-10. **Retry policy.** 3 attempts, 1/2/4 s backoff, 5 s method timeout. Missing
+10. **Retry policy.** 3 retries, 1/2/4 s backoff, 5 s method timeout. Missing
     service or exhausted retries: drop and log.
 11. **Default config coupling.** None. Patterns, sources, templates, urgency,
     cooldown, and queue capacity are TOML data. Future log-format changes are

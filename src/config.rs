@@ -77,6 +77,27 @@ pub enum Urgency {
     Critical,
 }
 
+impl Urgency {
+    /// Freedesktop urgency hint byte.
+    #[must_use]
+    pub const fn hint(self) -> u8 {
+        match self {
+            Self::Low => 0,
+            Self::Normal => 1,
+            Self::Critical => 2,
+        }
+    }
+
+    /// Freedesktop expiry: critical never expires, low/normal use daemon policy.
+    #[must_use]
+    pub const fn expire_timeout(self) -> i32 {
+        match self {
+            Self::Critical => 0,
+            Self::Low | Self::Normal => -1,
+        }
+    }
+}
+
 /// Configuration load or validation failure.
 #[derive(Debug, Error)]
 pub enum ConfigError {

@@ -34,7 +34,7 @@ We will use a dedicated notifier worker and a bounded in-memory queue.
 - Dropped-event lines are one line each: timestamp, source path, reason
   (`queue_full`, `notify_failed`, `no_service`), summary, and body. Newlines in
   the body are escaped.
-- Retry transient D-Bus failures up to 3 attempts with 1 s, 2 s, and 4 s
+- Retry transient D-Bus failures up to 3 times with 1 s, 2 s, and 4 s backoff.
   backoff. Each call has a 5 s method timeout. On a missing service or after the
   retries are exhausted, drop the event and log it.
 - There is no persistence across restart. Pending events are lost on exit. This

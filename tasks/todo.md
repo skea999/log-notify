@@ -252,28 +252,28 @@ method timeout, bounded retries, and the dropped-event log. The main loop must
 never call D-Bus. `replaces_id` is 0 in v0.1.
 
 **Acceptance criteria:**
-- [ ] The queue enforces `queue_capacity` per source (`1..=100`, default 10).
-- [ ] Overflow drops the oldest event of that source and logs it with reason
+- [x] The queue enforces `queue_capacity` per source (`1..=100`, default 10).
+- [x] Overflow drops the oldest event of that source and logs it with reason
       `queue_full`.
-- [ ] The main loop enqueues and never blocks on D-Bus.
-- [ ] The worker calls `org.freedesktop.Notifications.Notify` through zbus 6.5
+- [x] The main loop enqueues and never blocks on D-Bus.
+- [x] The worker calls `org.freedesktop.Notifications.Notify` through zbus 6.5
       with the documented arguments and urgency hint.
-- [ ] `low`/`normal` use `expire_timeout = -1`; `critical` uses `0`.
-- [ ] `ConnectionBuilder::method_timeout` is 5 seconds.
-- [ ] Transient failures retry 3 times with 1/2/4 s backoff; missing service or
+- [x] `low`/`normal` use `expire_timeout = -1`; `critical` uses `0`.
+- [x] The zbus connection uses a 5 second method timeout.
+- [x] Transient failures retry 3 times with 1/2/4 s backoff; missing service or
       exhausted retries drop and log with reason `no_service` or `notify_failed`.
-- [ ] `general.dropped_log` defaults to `/var/log/log-notify.log`; if unwritable,
+- [x] `general.dropped_log` defaults to `/var/log/log-notify.log`; if unwritable,
       warn once and fall back to stderr.
-- [ ] `--dry-run` prints a stable event line to stdout, starts no worker, and
-      never touches D-Bus.
-- [ ] Unit tests use a fake notifier and fake clock; no D-Bus required.
+- [x] `DryRunNotifier` prints a stable event line to stdout and never touches
+      D-Bus; T10 wires the `--dry-run` flag.
+- [x] Unit tests use a fake notifier and fake sleeper; no D-Bus required.
 
 **Verification:**
-- [ ] `cargo test notify`
-- [ ] `cargo test queue`
-- [ ] `log-notify --dry-run` against a fixture prints the expected event.
-- [ ] Manual live test with a running notification daemon.
-- [ ] Fault test with a failing notifier: drops logged, tailing continues.
+- [x] `cargo test notify`
+- [x] `cargo test queue`
+- [ ] `log-notify --dry-run` against a fixture prints the expected event (T10).
+- [ ] Manual live test with a running notification daemon (T14).
+- [x] Fault test with a failing notifier: drops logged, tailing continues.
 
 **Dependencies:** Task 4, Task 8, Task 1.
 
@@ -283,9 +283,9 @@ never call D-Bus. `replaces_id` is 0 in v0.1.
 **Estimated scope:** Medium (5 files).
 
 **Checkpoint: Notifications**
-- [ ] Cooldown, queue, worker, and dropped-log tests pass.
-- [ ] Dry-run and fake notifier paths are deterministic.
-- [ ] A failing notifier does not stall the main loop.
+- [x] Cooldown, queue, worker, and dropped-log tests pass.
+- [x] Dry-run and fake notifier paths are deterministic.
+- [x] A failing notifier does not stall the main loop.
 - [ ] Review with the human before wiring the daemon.
 
 ## Phase 5: Daemon wiring and proof

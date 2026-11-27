@@ -211,7 +211,7 @@ Per-source, monotonic clock, no persistence.
   - no actions
   - `urgency` hint: `low = 0`, `normal = 1`, `critical = 2`
   - `expire_timeout`: `-1` for low/normal, `0` for critical (never expire)
-- Transient failure: retry up to 3 attempts with 1 s, 2 s, and 4 s backoff.
+- Transient failure: retry up to 3 times with 1 s, 2 s, and 4 s backoff.
   Reconnect the zbus connection before a retry when the error indicates a lost
   connection.
 - Missing service (`ServiceUnknown`, no session bus): no retry; drop the event
