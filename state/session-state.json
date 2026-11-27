@@ -1,10 +1,10 @@
 {
   "goal": "log-notify v0.1: Rust daemon that tails configured log files, matches per-source regexes, and emits freedesktop notifications through D-Bus with reliable bounded delivery.",
-  "status": "t10-complete",
+  "status": "t11-complete",
   "active_goals": [
-    "T1-T10 complete: docs, CI, config, pattern, tail, watcher, rotation, cooldown, delivery, CLI.",
-    "CLI supports config selection, dry-run, once, verbose, version; continuous mode uses Watcher + CooldownSet + EventQueue + Worker.",
-    "Next: T11 lockfile and signals, then fixture integration tests and release."
+    "T1-T11 complete: docs, CI, config, pattern, tail, watcher, rotation, cooldown, delivery, CLI, lock/signals.",
+    "Single-instance flock at $XDG_RUNTIME_DIR/log-notify.lock with /run/user/<uid> fallback; SIGTERM/SIGINT wake watcher and exit 0; SIGHUP logged/ignored.",
+    "Next: T12 fixture integration tests, T13 default config verification, T14 release."
   ],
   "decisions": [
     "Rust stable, edition 2024, single binary, Linux only, synchronous main loop, inotify-driven with no polling.",
@@ -46,7 +46,10 @@
     "CLI uses clap; disabled sources are filtered and active indices map back to config sources.",
     "--once uses direct delivery with retry so the process waits for the delivery/drop outcome; continuous mode uses the queue and worker.",
     "Watcher warnings are printed to stderr; --verbose prefixes them as tail-debug lines.",
-    "Dropped log is opened at startup with stderr fallback; dry-run still computes matches and cooldown but never touches D-Bus."
+    "Dropped log is opened at startup with stderr fallback; dry-run still computes matches and cooldown but never touches D-Bus.",
+    "Lock uses rustix flock nonblocking exclusive; the open File is held for the process lifetime.",
+    "signal-hook iterator thread calls Watcher shutdown handle on SIGTERM/SIGINT; SIGHUP is logged and ignored.",
+    "Watcher poll treats EINTR as a wake and retries, so signal interruption does not fail shutdown."
   ],
   "risks": [
     "Watcher warnings are not yet printed by a CLI; T10 must consume them.",
@@ -56,8 +59,8 @@
     "Session-memory scripts fail on this host with Nix libc relocation errors; context-mode ctx_* tools and this state file are the working alternative."
   ],
   "next_actions": [
-    "Start T11: lockfile at $XDG_RUNTIME_DIR/log-notify.lock and SIGTERM/SIGINT graceful shutdown.",
-    "Add fixture integration tests and release verification.",
-    "Run full verify and push after T11."
+    "Start T12: fixture end-to-end tests for dry-run, cooldown, rotation, queue drop, once.",
+    "Verify default config patterns with fixtures in T13.",
+    "Run full verify and push after T12/T13/T14."
   ]
 }

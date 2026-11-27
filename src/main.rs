@@ -3,12 +3,16 @@
 use std::path::PathBuf;
 use std::process::ExitCode;
 use std::sync::Arc;
+use std::thread;
 use std::time::Instant;
 
 use clap::Parser;
+use signal_hook::consts::signal::{SIGHUP, SIGINT, SIGTERM};
+use signal_hook::iterator::Signals;
 
 use log_notify::config::{self, Config};
 use log_notify::cooldown::CooldownSet;
+use log_notify::lock::Lock;
 use log_notify::notify::{
     self, DroppedLog, DryRunNotifier, EventQueue, NotificationEvent, Notifier, SystemSleep, Worker,
     ZbusNotifier,
@@ -69,7 +73,9 @@ fn run(cli: &Cli) -> Result<(), Box<dyn std::error::Error>> {
         .filter_map(|&index| config.sources.get(index))
         .map(|source| source.path.clone())
         .collect();
+    let _lock = Lock::acquire_default()?;
     let mut watcher = Watcher::new(&paths, config.general.line_cap_bytes)?;
+    install_signal_handlers(&watcher)?;
     let dropped = Arc::new(DroppedLog::open(&config.general.dropped_log));
     let mut cooldowns = CooldownSet::new(
         active
@@ -122,6 +128,26 @@ fn run(cli: &Cli) -> Result<(), Box<dyn std::error::Error>> {
     if let Some((_, mut worker)) = server.take() {
         worker.shutdown();
     }
+    Ok(())
+}
+
+fn install_signal_handlers(watcher: &Watcher) -> Result<(), Box<dyn std::error::Error>> {
+    let mut signals = Signals::new([SIGTERM, SIGINT, SIGHUP])?;
+    let shutdown = watcher.shutdown_handle();
+    let _signal_thread = thread::spawn(move || {
+        for signal in signals.forever() {
+            match signal {
+                SIGTERM | SIGINT => {
+                    shutdown.trigger();
+                    return;
+                }
+                SIGHUP => {
+                    eprintln!("log-notify: SIGHUP ignored; restart to reload config");
+                }
+                _ => {}
+            }
+        }
+    });
     Ok(())
 }
 

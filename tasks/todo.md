@@ -324,17 +324,17 @@ precise messages.
 SIGHUP is ignored in v0.1.
 
 **Acceptance criteria:**
-- [ ] A second instance exits non-zero with a clear message.
-- [ ] The lock is released on clean exit and on SIGTERM/SIGINT.
-- [ ] SIGTERM and SIGINT close watchers, wake the worker, and exit 0.
-- [ ] SIGHUP does not reload; it is logged and ignored.
-- [ ] `$XDG_RUNTIME_DIR` unset falls back to `/run/user/<uid>` if present, else
+- [x] A second instance exits non-zero with a clear message.
+- [x] The lock is released on clean exit and on SIGTERM/SIGINT.
+- [x] SIGTERM and SIGINT close watchers, wake the worker, and exit 0.
+- [x] SIGHUP does not reload; it is logged and ignored.
+- [x] `$XDG_RUNTIME_DIR` unset falls back to `/run/user/<uid>` if present, else
       exits with a clear error.
 
 **Verification:**
-- [ ] Integration test starts two instances; the second fails.
-- [ ] Send SIGTERM to a running fixture instance; exit code is 0.
-- [ ] `cargo test lifecycle`
+- [x] Integration test starts two instances; the second fails.
+- [x] Send SIGTERM to a running fixture instance; exit code is 0.
+- [x] `cargo test lifecycle`
 
 **Dependencies:** Task 10.
 

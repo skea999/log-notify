@@ -185,7 +185,11 @@ impl Watcher {
             PollFd::new(&inotify_fd, PollFlags::IN),
             PollFd::new(&shutdown_fd, PollFlags::IN),
         ];
-        let ready = poll(&mut fds, None).map_err(errno_error)?;
+        let ready = match poll(&mut fds, None) {
+            Ok(ready) => ready,
+            Err(rustix::io::Errno::INTR) => return Ok((false, false)),
+            Err(error) => return Err(errno_error(error)),
+        };
         if ready == 0 {
             return Ok((false, false));
         }

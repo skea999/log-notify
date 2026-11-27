@@ -7,6 +7,7 @@
 
 pub mod config;
 pub mod cooldown;
+pub mod lock;
 pub mod notify;
 pub mod pattern;
 pub mod tail;
