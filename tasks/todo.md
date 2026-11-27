@@ -406,14 +406,14 @@ gates as CI.
 **Acceptance criteria:**
 - [ ] Tag push builds the release binary.
 - [ ] musl static build succeeds and is uploaded as an artifact.
-- [ ] fmt, clippy, and tests run before the build.
-- [ ] The workflow uses a container and pinned toolchain.
-- [ ] Release notes or changelog entry is produced or documented.
+- [x] fmt, clippy, and tests run before the build.
+- [x] The workflow uses a container and pinned toolchain.
+- [x] Release notes or changelog entry is produced or documented.
 
 **Verification:**
 - [ ] Dry-run the workflow on a test tag.
 - [ ] Download the artifact and run `--version`.
-- [ ] `file` reports a static binary for the musl artifact.
+- [x] `file` reports a static binary for the musl artifact.
 
 **Dependencies:** Task 12.
 
@@ -422,10 +422,10 @@ gates as CI.
 **Estimated scope:** Small (1-2 files).
 
 **Checkpoint: v0.1 complete**
-- [ ] Every spec §7 test passes.
-- [ ] Manual fixture run matches expected events.
+- [x] Every spec §7 test passes.
+- [x] Manual fixture run matches expected events.
 - [ ] README commands work from a clean checkout.
 - [ ] Release artifact exists.
-- [ ] Queue overflow and failed delivery drops are logged.
-- [ ] Adding or removing a source needs only a TOML edit.
+- [x] Queue overflow and failed delivery drops are logged.
+- [x] Adding or removing a source needs only a TOML edit.
 - [ ] Human review and approval before tagging v0.1.0.

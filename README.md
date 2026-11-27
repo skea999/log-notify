@@ -9,9 +9,9 @@ desktop notifications.
 security control: it reads logs, reports matches, and keeps running when the
 desktop notification service is absent.
 
-**Status:** documentation, CI scaffold, and Rust scaffold initialized on
-2026-11-26. The daemon behavior is not implemented yet. The contract below is
-defined by [`docs/log-notify-spec.md`](docs/log-notify-spec.md) and planned in
+**Status:** v0.1 implemented on 2026-11-27. CI is green. The first tagged
+release is pending approval. The contract below is defined by
+[`docs/log-notify-spec.md`](docs/log-notify-spec.md) and implemented in
 [`tasks/plan.md`](tasks/plan.md).
 
 ## Overview

@@ -20,6 +20,7 @@ All notable changes to this project are documented in this file (Keep a Changelo
 - T10 CLI: clap flags (`--config`, `--dry-run`, `--once`, `--verbose`, `--version`), active-source mapping, dry-run/once lifecycle, watcher warnings, worker startup/shutdown, and 3 CLI tests.
 - T11 lifecycle: `flock` single-instance lock with XDG fallback, SIGTERM/SIGINT shutdown through the watcher pipe, SIGHUP ignored, second-instance and SIGTERM CLI tests.
 - T12/T13 fixtures: representative fail2ban, clamav, tracee, aide, and auditd lines; shipped config loads and every source pattern matches. No tool-specific logic in Rust.
+- T14 release workflow: containerized tag build, static musl tarball with sha256, GitHub release upload, and quality gates before packaging. Local package verification passes; tag publish pending approval.
 - Local container entry point `scripts/dev.sh` with the same gates as CI.
 
 ### Changed

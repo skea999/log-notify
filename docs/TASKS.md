@@ -1,7 +1,7 @@
 # Tasks — log-notify
 
-**Milestone**: v0.1.0
-**Updated**: 2026-11-26
+**Milestone**: v0.1.0 (release tag pending)
+**Updated**: 2026-11-27
 
 Canonical task list: [`tasks/todo.md`](../tasks/todo.md).
 Implementation plan: [`tasks/plan.md`](../tasks/plan.md).

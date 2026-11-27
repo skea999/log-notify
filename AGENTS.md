@@ -9,8 +9,8 @@ D-Bus `org.freedesktop.Notifications` via zbus 6.5. TOML config, Rust `regex`
 patterns. Main loop never calls D-Bus; a bounded queue and a dedicated notifier
 worker isolate delivery.
 
-**State:** documentation, CI scaffold, and Rust scaffold in place (2026-11-26).
-Daemon behavior not implemented yet. Canonical work list: `tasks/todo.md`.
+**State:** v0.1 implementation complete (2026-11-27); first release tag pending.
+Canonical work list: `tasks/todo.md`.
 
 ## Project Structure
 
