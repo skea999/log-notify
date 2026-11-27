@@ -1,10 +1,10 @@
 {
   "goal": "log-notify v0.1: Rust daemon that tails configured log files, matches per-source regexes, and emits freedesktop notifications through D-Bus with reliable bounded delivery.",
-  "status": "v0.1-code-complete",
+  "status": "release-ready",
   "active_goals": [
-    "T1-T13 complete; T14 release workflow implemented and local static package verified.",
-    "v0.1 code is complete and CI is green. Only the first release tag/publish remains.",
-    "Awaiting approval to create tag v0.1.0 and publish the GitHub release."
+    "T1-T13 complete; T14 release workflow + Nix flake implemented.",
+    "Flake parses, passes statix/deadnix/alejandra, and evaluates version 0.1.0.",
+    "Awaiting tag v0.1.0: CI will build static musl tarball, publish release, pin nix/binary.nix, attach flake source."
   ],
   "decisions": [
     "Rust stable, edition 2024, single binary, Linux only, synchronous main loop, inotify-driven with no polling.",
@@ -51,7 +51,9 @@
     "signal-hook iterator thread calls Watcher shutdown handle on SIGTERM/SIGINT; SIGHUP is logged and ignored.",
     "Watcher poll treats EINTR as a wake and retries, so signal interruption does not fail shutdown.",
     "Fixture integration loads the shipped config and matches fail2ban, clamav, tracee, aide, auditd sample lines.",
-    "Source behavior stays config-only; the only hardcoded log path in Rust is the dropped-event log default."
+    "Source behavior stays config-only; the only hardcoded log path in Rust is the dropped-event log default.",
+    "Nix flake packages the pinned static musl tarball instead of building musl from source; nix/binary.nix is pinned by CI on tags.",
+    "CI nix job lints/evaluates on PR/main; on tags it verifies the release tarball, pins the flake, and attaches the flake source."
   ],
   "risks": [
     "Watcher warnings are not yet printed by a CLI; T10 must consume them.",
@@ -61,8 +63,8 @@
     "Session-memory scripts fail on this host with Nix libc relocation errors; context-mode ctx_* tools and this state file are the working alternative."
   ],
   "next_actions": [
-    "Approve or reject creating tag v0.1.0 and publishing the release.",
-    "After tag: verify release assets, download the musl tarball, run --version.",
-    "Update CHANGELOG from Unreleased to 0.1.0 at release time."
+    "Cut CHANGELOG to 0.1.0.",
+    "Create and push tag v0.1.0.",
+    "Watch verify -> release -> nix jobs; verify release assets and flake tarball."
   ]
 }

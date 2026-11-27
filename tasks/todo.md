@@ -400,8 +400,8 @@ data. Adding or removing a source requires only a TOML edit, never a code change
 ### Task 14: Release CI and musl artifact
 
 **Description:** Add a tag-driven release workflow that builds and uploads the
-release binary, including `x86_64-unknown-linux-musl`. Keep the same quality
-gates as CI.
+release binary, including `x86_64-unknown-linux-musl`, plus a Nix flake that
+packages the pinned tarball. Keep the same quality gates as CI.
 
 **Acceptance criteria:**
 - [ ] Tag push builds the release binary.
@@ -409,6 +409,8 @@ gates as CI.
 - [x] fmt, clippy, and tests run before the build.
 - [x] The workflow uses a container and pinned toolchain.
 - [x] Release notes or changelog entry is produced or documented.
+- [x] The flake packages the pinned static tarball and evaluates `0.1.0`.
+- [x] The Nix CI job lints/evaluates on PR/main and pins the tag release.
 
 **Verification:**
 - [ ] Dry-run the workflow on a test tag.

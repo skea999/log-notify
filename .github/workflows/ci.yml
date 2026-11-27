@@ -1,10 +1,12 @@
-# log-notify CI — two jobs, linear by design.
+# log-notify CI — three jobs, linear by design.
 #
 #   verify   ONE job, ONE image (ci/Containerfile → log-notify-ci:ci): build,
 #            code tests, static analysis, docs, release binary. Push/PR:
 #            everything runs, the release package is uploaded on tags only.
 #   release  tag only: download the package produced by verify and publish the
 #            GitHub release. Write permission is scoped to this job.
+#   nix      PR/main: Nix lint + flake evaluation. Tag: verify the published
+#            tarball, pin nix/binary.nix, attach the flake source to the release.
 #
 # Host isolation: no toolchain on the runner; every command runs in a container.
 # Cargo caches are restore-only from untrusted refs; only main may save.
@@ -142,6 +144,116 @@ jobs:
             name=$(basename "$artifact")
             if printf '%s\n' "$assets" | grep -Fxq "$name"; then
               echo "already published: $name"
+            else
+              gh release upload "$GITHUB_REF_NAME" "$artifact"
+            fi
+          done
+
+  nix:
+    if: always() && needs.verify.result == 'success' && (github.ref_type != 'tag' || needs.release.result == 'success')
+    needs: [verify, release]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      NIX_CONFIG: "experimental-features = nix-command flakes"
+      NIX_IMAGE: nixos/nix@sha256:62c506c32c75395163676006f0c00d75c31578fffaac1167d600289f72477b78
+      RELEASE_ASSET: log-notify-${{ github.ref_name }}-x86_64-musl.tar.gz
+    steps:
+      # A tag updates the pin on main; PRs and branches check out their ref.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.ref_type == 'tag' && 'main' || github.ref }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Nix lint and flake evaluation (PR/main, no build)
+        if: github.ref_type != 'tag'
+        run: |
+          docker run --rm --network=host -v "$PWD:/work" -w /work \
+            -e NIX_CONFIG="$NIX_CONFIG" "$NIX_IMAGE" sh -c '
+              git config --global --add safe.directory /work
+              nix run nixpkgs#statix -- check flake.nix
+              nix run nixpkgs#statix -- check nix
+              nix run nixpkgs#deadnix -- --fail flake.nix nix
+              nix run nixpkgs#alejandra -- --check flake.nix nix
+              nix eval --raw .#packages.x86_64-linux.log-notify.version
+            '
+
+      - name: Fast integrity smoke of the published tarball (tag)
+        if: github.ref_type == 'tag'
+        run: |
+          set -eu
+          base="https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}"
+          mkdir -p artifacts/release
+          curl -fsSL -o "artifacts/release/$RELEASE_ASSET" "$base/$RELEASE_ASSET"
+          curl -fsSL -o "artifacts/release/$RELEASE_ASSET.sha256" "$base/$RELEASE_ASSET.sha256"
+          cd artifacts/release
+          sha256sum -c "./$RELEASE_ASSET.sha256"
+          gzip -t "$RELEASE_ASSET"
+          tar tzf "$RELEASE_ASSET" >/dev/null
+          for entry in bin/log-notify config/log-notify.toml README.md LICENSE; do
+            tar tzf "$RELEASE_ASSET" | grep -Fqx "./$entry"
+          done
+          cd "$GITHUB_WORKSPACE"
+          mkdir -p artifacts/smoke
+          tar xzf "artifacts/release/$RELEASE_ASSET" -C artifacts/smoke
+          if readelf -d artifacts/smoke/bin/log-notify | grep -q NEEDED; then
+            echo "log-notify is not static" >&2
+            exit 1
+          fi
+          artifacts/smoke/bin/log-notify --version
+
+      - name: Pin the release and package the flake source (tag)
+        if: github.ref_type == 'tag'
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+          sha=$(cut -d' ' -f1 artifacts/release/*.sha256 | head -n 1)
+          test -n "$sha"
+          url="https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/${RELEASE_ASSET}"
+          sed -i \
+            -e "s|^  version = \".*\";|  version = \"${version}\";|" \
+            -e "s|^  url = \".*\";|  url = \"${url}\";|" \
+            -e "s|^  sha256 = \".*\";|  sha256 = \"${sha}\";|" \
+            nix/binary.nix
+          git diff -- nix/binary.nix
+          if git diff --quiet -- nix/binary.nix; then
+            echo "release pin already current"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add nix/binary.nix
+            git commit -m "chore(nix): pin release ${GITHUB_REF_NAME} [skip ci]"
+            git fetch origin main
+            git rebase origin/main
+            git push "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:main
+          fi
+          docker run --rm --network=host -v "$PWD:/work" -w /work \
+            -e NIX_CONFIG="$NIX_CONFIG" "$NIX_IMAGE" sh -c '
+              git config --global --add safe.directory /work
+              test "$(nix eval --raw .#packages.x86_64-linux.log-notify.version)" = "'"${version}"'"
+            '
+          flake="log-notify-flake-${GITHUB_REF_NAME}.tar.gz"
+          tar czf "artifacts/release/$flake" \
+            flake.nix flake.lock nix README.md LICENSE config/log-notify.toml
+          (
+            cd artifacts/release
+            sha256sum "$flake" >"$flake.sha256"
+          )
+
+      - name: Attach the flake to the tag release (tag)
+        if: github.ref_type == 'tag'
+        working-directory: artifacts/release
+        run: |
+          set -eu
+          flake="log-notify-flake-${GITHUB_REF_NAME}.tar.gz"
+          assets=$(gh release view "$GITHUB_REF_NAME" --json assets --jq '.assets[].name')
+          for artifact in "$flake" "$flake.sha256"; do
+            if printf '%s\n' "$assets" | grep -Fxq "$artifact"; then
+              echo "already published: $artifact"
             else
               gh release upload "$GITHUB_REF_NAME" "$artifact"
             fi

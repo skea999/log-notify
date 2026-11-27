@@ -15,7 +15,7 @@ Canonical work list: `tasks/todo.md`.
 ## Project Structure
 
 ```text
-src/                 Rust implementation (planned; do not put app code elsewhere)
+src/                 Rust implementation
 src/main.rs          CLI, startup, config load, fail-loud validation
 src/config.rs        TOML parse and validation, regex compilation
 src/tail.rs          inotify tailer: offsets, partial lines, shrink reset
@@ -25,6 +25,8 @@ tests/               smoke, pattern, tail, cooldown, config tests
 config/              shipped default config
 ci/                  CI container image
 scripts/             test, static, docs, duplicate, release gates
+flake.nix            Nix package from the pinned release tarball
+nix/binary.nix       version/url/sha256 pinned on tag
 docs/                spec, architecture, ADRs, project and task docs
 docs/decisions/      Architecture Decision Records
 tasks/               implementation plan and ordered task list
@@ -45,6 +47,7 @@ scripts/dev.sh check      # fmt + clippy-driven test gate
 scripts/dev.sh static     # full static analysis
 scripts/dev.sh docs       # markdownlint-cli2
 scripts/dev.sh verify     # static + docs + static-musl release package
+nix build                 # flake package from the pinned musl tarball
 ```
 
 Direct commands for a host with Rust:

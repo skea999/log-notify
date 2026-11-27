@@ -2,7 +2,7 @@
 
 All notable changes to this project are documented in this file (Keep a Changelog format, newest first). Policy: `.opencode/rules/workflow.md`.
 
-## [Unreleased] — 2026-11-26
+## [0.1.0] — 2026-11-27
 
 ### Added
 
@@ -21,6 +21,7 @@ All notable changes to this project are documented in this file (Keep a Changelo
 - T11 lifecycle: `flock` single-instance lock with XDG fallback, SIGTERM/SIGINT shutdown through the watcher pipe, SIGHUP ignored, second-instance and SIGTERM CLI tests.
 - T12/T13 fixtures: representative fail2ban, clamav, tracee, aide, and auditd lines; shipped config loads and every source pattern matches. No tool-specific logic in Rust.
 - T14 release workflow: containerized tag build, static musl tarball with sha256, GitHub release upload, and quality gates before packaging. Local package verification passes; tag publish pending approval.
+- T14 Nix flake: pinned static-musl package, PR/main lint + eval job, tag-time `nix/binary.nix` pin, and flake source attachment to the release.
 - Local container entry point `scripts/dev.sh` with the same gates as CI.
 
 ### Changed

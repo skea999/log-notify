@@ -97,6 +97,19 @@ install -Dm644 config/log-notify.toml ~/.config/log-notify/log-notify.toml
 The default config is installed to `/etc/log-notify/log-notify.toml` on
 FeralOS. Use `--config` to point at another file.
 
+## Nix
+
+The flake packages the pinned static musl release tarball:
+
+```bash
+nix build
+nix profile install .
+```
+
+On a release tag, CI pins `nix/binary.nix` to the published tarball and attaches
+the flake source to the GitHub release. Before the first release, the placeholder
+sha256 prevents a local `nix build`; the tag job replaces it.
+
 ## Usage
 
 ```text
