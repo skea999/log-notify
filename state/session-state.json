@@ -1,11 +1,10 @@
 {
   "goal": "log-notify v0.1: Rust daemon that tails configured log files, matches per-source regexes, and emits freedesktop notifications through D-Bus with reliable bounded delivery.",
-  "status": "t7-complete",
+  "status": "t8-complete",
   "active_goals": [
-    "T1 scaffold, T2 CI, T3 config, T4 pattern, T5 tail core, T6 watcher, T7 rotation complete.",
-    "Watcher uses inotify directory watches, poll with a shutdown pipe, missing-ancestor tracking, shrink reset, inode reopen, delete/recreate.",
-    "Next: T8 cooldown, then T9 queue/worker/zbus.",
-    "Pushed T5/T6/T7; GitHub Actions run 45986205083 is green."
+    "T1-T8 complete: scaffold, CI, config, pattern, tail, watcher, rotation, cooldown.",
+    "Cooldown uses injected Instant, no sleeps; per-source windows and zero disables.",
+    "Next: T9 bounded queue, notifier worker, zbus 6.5, dropped log."
   ],
   "decisions": [
     "Rust stable, edition 2024, single binary, Linux only, synchronous main loop, inotify-driven with no polling.",
@@ -38,7 +37,8 @@
     "Watch the nearest existing ancestor directory, not the source file; reconcile every source on events. This covers missing files and rotation uniformly.",
     "Use inotify nonblocking reads with rustix poll and a nonblocking self-pipe for shutdown; no polling loop.",
     "Store dev/inode/offset in Tailer; shrink resets to byte 0, inode replacement reopens at EOF, delete/recreate opens at EOF.",
-    "Watcher warnings (missing source, failed watch, rotation, overflow, read errors) are accumulated for T10 to log."
+    "Watcher warnings (missing source, failed watch, rotation, overflow, read errors) are accumulated for T10 to log.",
+    "Cooldown records emission at enqueue; window boundary is inclusive (last + window allows). Tests inject Instant."
   ],
   "risks": [
     "Watcher warnings are not yet printed by a CLI; T10 must consume them.",
@@ -48,7 +48,8 @@
     "Session-memory scripts fail on this host with Nix libc relocation errors; context-mode ctx_* tools and this state file are the working alternative."
   ],
   "next_actions": [
-    "Start T8: per-source cooldown with injectable monotonic clock.",
-    "Implement T9 queue/worker/zbus/dropped log with fault tests."
+    "Start T9: queue, worker, zbus 6.5 block_on, retries, dropped-event log.",
+    "Add fault tests with a fake notifier and fake clock; no D-Bus.",
+    "Run scripts/dev.sh verify and push after each task."
   ]
 }

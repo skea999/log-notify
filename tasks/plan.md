@@ -88,7 +88,7 @@ No async runtime. No network dependency.
 
 ### Phase 4: Cooldown, queue, notifications
 
-- [ ] T8: Per-source cooldown
+- [x] T8: Per-source cooldown
 - [ ] T9: Bounded queue, notifier worker, zbus backend, dropped log
 
 **Checkpoint: Notifications**

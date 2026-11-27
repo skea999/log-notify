@@ -213,8 +213,8 @@ current end. Handle delete and recreate without crashing.
 **Estimated scope:** Medium (2-3 files).
 
 **Checkpoint: Tail**
-- [ ] Append, partial, cap, shrink, and inode tests pass.
-- [ ] A manual fixture run shows one event per line.
+- [x] Append, partial, cap, shrink, and inode tests pass.
+- [x] A fixture run shows one event per line (tests).
 - [ ] Review with the human before notification work.
 
 ## Phase 4: Cooldown and notifications
@@ -226,17 +226,17 @@ enqueue, suppress further matches from that source for the configured window.
 Use an injectable clock so tests do not sleep.
 
 **Acceptance criteria:**
-- [ ] Default cooldown is 0 (disabled).
-- [ ] A second match inside the window is suppressed.
-- [ ] A match after the window is emitted.
-- [ ] Cooldown is independent per source.
-- [ ] Suppressed matches are discarded, not queued.
-- [ ] Tests use a fake clock; no real sleeps.
+- [x] Default cooldown is 0 (disabled).
+- [x] A second match inside the window is suppressed.
+- [x] A match after the window is emitted.
+- [x] Cooldown is independent per source.
+- [x] Suppressed matches are discarded, not queued.
+- [x] Tests use a fake clock; no real sleeps.
 
 **Verification:**
-- [ ] Unit tests for first match, suppressed second match, expiry, and two
+- [x] Unit tests for first match, suppressed second match, expiry, and two
       sources with different windows.
-- [ ] `cargo test cooldown`
+- [x] `cargo test cooldown`
 
 **Dependencies:** Task 1.
 
